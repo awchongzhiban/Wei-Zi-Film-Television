@@ -10,6 +10,7 @@
     </parent>
 
     <artifactId>weizi_film_television_common</artifactId>
+    <description>微子影视公共模块</description>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
