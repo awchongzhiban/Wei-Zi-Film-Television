@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.weizi.common.mapper.UmsAdminMapper">
+    <resultMap id="UmsAdminResultMap" type="com.weizi.common.domain.entity.UmsAdminEntity">
+        <id column="admin_id" property="adminId"/>
+        <result column="username" property="username"/>
+        <result column="nickname" property="nickname"/>
+        <result column="email" property="email"/>
+        <result column="mobile" property="mobile"/>
+        <result column="sex" property="sex"/>
+        <result column="avatar" property="avatar"/>
+        <result column="password" property="password"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="remark" property="remark"/>
+        <result column="deleted" property="deleted"/>
+        <collection property="roleList" javaType="list" resultMap="UmsRoleResult"/>
+    </resultMap>
+
+    <!--    配置角色映射-->
+    <resultMap id="UmsRoleResult" type="com.weizi.common.domain.entity.UmsRoleEntity">
+        <id column="role_id" property="roleId"/>
+        <result column="role_label" property="roleLabel"/>
+        <result column="role_name" property="roleName"/>
+        <result column="sort" property="sort"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="remark" property="remark"/>
+        <result column="deleted" property="deleted"/>
+    </resultMap>
+    <update id="updateAdminAvatar">
+        UPDATE admin
+        SET avatar = #{imageFileName}
+        WHERE admin_id = #{adminId}
+    </update>
+
+    <select id="selectAdminByUserName" resultMap="UmsAdminResultMap">
+        select
+        a.admin_id,a.username,a.nickname,a.email,a.mobile,a.sex,a.avatar,a.password,
+        a.status,a.create_time,a.update_time,a.remark,
+        r.role_id,r.role_label,r.role_name,r.sort
+        from admin a
+        left join admin_to_role atr on a.admin_id = atr.admin_id left join role r on r.role_id = atr.role_id
+        <where>
+            a.deleted = 0 and r.deleted = 0 and
+            <if test="accountType == 0">
+                a.username = #{account}
+            </if>
+            <if test="accountType == 1">
+                a.mobile = #{account}
+            </if>
+            <if test="accountType == 2">
+                a.email = #{account}
+            </if>
+        </where>
+
+    </select>
+    <select id="selectAdminPage" resultType="com.weizi.common.domain.entity.UmsAdminEntity">
+        SELECT *
+        FROM admin
+        <where>
+            <if test="username != null and username != ''">
+                AND username like concat('%', #{username}, '%')
+            </if>
+            <if test="nickname != null and nickname != ''">
+                AND nickname like concat('%', #{nickname}, '%')
+            </if>
+            <if test="email != null and email != ''">
+                AND email like concat('%', #{email}, '%')
+            </if>
+            <if test="mobile != null and mobile != ''">
+                AND mobile like concat('%', #{mobile}, '%')
+            </if>
+        </where>
+        LIMIT #{pageNum}, #{pageSize}
+    </select>
+    <select id="countTotal" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM admin
+        <where>
+            deleted = 0
+            <if test="username != null and username != ''">
+                AND username like concat('%', #{username}, '%')
+            </if>
+            <if test="nickname != null and nickname != ''">
+                AND nickname like concat('%', #{nickname}, '%')
+            </if>
+            <if test="email != null and email != ''">
+                AND email like concat('%', #{email}, '%')
+            </if>
+            <if test="mobile != null and mobile != ''">
+                AND mobile like concat('%', #{mobile}, '%')
+            </if>
+        </where>
+    </select>
+    <select id="searchAdminById" resultType="com.weizi.common.domain.entity.UmsAdminEntity">
+        SELECT *
+        FROM admin
+        <where>
+            admin_id = #{adminId}
+            AND deleted = 0
+        </where>
+    </select>
+</mapper>

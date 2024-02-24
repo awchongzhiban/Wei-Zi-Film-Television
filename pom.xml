@@ -4,15 +4,16 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>com.awp</groupId>
+    <groupId>com.weizi</groupId>
     <artifactId>weizi_film_television</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
     <description>父工程，定义依赖</description>
     <modules>
         <module>weizi_film_television_common</module>
         <module>weizi_film_television_support</module>
-        <module>weizi_film_television_common_auth</module>
-        <module>weizi_film_television_common_stater</module>
+        <module>weizi_film_television_auth</module>
+        <module>weizi_film_television_stater</module>
+        <module>weizi_film_television_sys_admin</module>
     </modules>
     <packaging>pom</packaging>
 
@@ -21,15 +22,15 @@
         <maven.compiler.target>17</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <springboot.version>3.1.5</springboot.version>
-        <druid.version>1.2.20</druid.version>
-        <mysql.version>8.0.33</mysql.version>
+        <druid.version>1.2.21</druid.version>
+        <mariadb.version>3.3.2</mariadb.version>
         <springdoc.version>1.6.15</springdoc.version>
         <knife4j.version>4.1.0</knife4j.version>
         <mybatis-plus.version>3.5.3.2</mybatis-plus.version>
         <hutool.version>5.8.22</hutool.version>
         <springfox.version>3.0.0</springfox.version>
         <lombok.version>1.18.30</lombok.version>
-        <daocao.version>1.0.0</daocao.version>
+        <weizi.version>1.0.0</weizi.version>
         <jwt.version>0.9.1</jwt.version>
         <jxb.version>2.3.1</jxb.version>
         <redis.version>3.1.5</redis.version>
@@ -47,10 +48,11 @@
                 <scope>import</scope>
             </dependency>
             <dependency>
-                <groupId>mysql</groupId>
-                <artifactId>mysql-connector-java</artifactId>
-                <version>${mysql.version}</version>
+                <groupId>org.mariadb.jdbc</groupId>
+                <artifactId>mariadb-java-client</artifactId>
+                <version>${mariadb.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>com.alibaba</groupId>
                 <artifactId>druid-spring-boot-starter</artifactId>
@@ -117,6 +119,26 @@
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
                 <version>${lombok.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.weizi</groupId>
+                <artifactId>weizi_film_television_support</artifactId>
+                <version>${weizi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.weizi</groupId>
+                <artifactId>weizi_film_television_common</artifactId>
+                <version>${weizi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.weizi</groupId>
+                <artifactId>weizi_film_television_auth</artifactId>
+                <version>${weizi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.weizi</groupId>
+                <artifactId>weizi_film_television_sys_admin</artifactId>
+                <version>${weizi.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

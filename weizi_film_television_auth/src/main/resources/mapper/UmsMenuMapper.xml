@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.weizi.common.mapper.UmsMenuMapper">
+    <!--  根据roleId批量查询菜单  -->
+    <select id="selectAdminByRoleIds" resultType="com.weizi.common.domain.entity.UmsMenuEntity">
+
+        select m.menu_id,m.parent_id,m.menu_name,m.sort,m.menu_type,m.path,m.component_path,m.perms,m.icon
+        from menu m left join role_to_menu rtm on m.menu_id = rtm.menu_id
+        where rtm.role_id in
+        <foreach collection="roleIds" open="(" close=")" separator="," item="roleId">
+            #{roleId}
+        </foreach>
+        and m.deleted = 0 and m.status = 0
+    </select>
+
+<!--获取列表相关 Start-->
+    <select id="selectMenusByParentIds" resultType="com.weizi.common.domain.entity.UmsMenuEntity">
+        SELECT * FROM menu
+        WHERE parent_id IN
+        <foreach collection="parentIds" item="parentId" open="(" close=")" separator=",">
+            #{parentId}
+        </foreach>
+    </select>
+    <select id="selectMenuPage" resultType="com.weizi.common.domain.entity.UmsMenuEntity">
+        SELECT *
+        FROM menu
+        <where>
+            parent_id = 0
+            <if test="menuName != null and menuName != ''">
+                AND menu_name like concat('%', #{menuName}, '%')
+            </if>
+            <if test="perms != null and perms != ''">
+                AND perms like concat('%', #{perms}, '%')
+            </if>
+        </where>
+        ORDER BY sort ASC
+        LIMIT #{pageNum}, #{pageSize}
+    </select>
+
+    <select id="getChildrenMenu" resultType="com.weizi.common.domain.entity.UmsMenuEntity">
+        WITH RECURSIVE MenuTree AS (
+        SELECT * FROM menu WHERE parent_id IN
+        <foreach collection="parentIds" item="parentId" open="(" close=")" separator=",">
+            #{parentId}
+        </foreach>
+        UNION ALL
+        SELECT m.* FROM menu m INNER JOIN MenuTree mt ON m.parent_id = mt.menu_id
+        )
+        SELECT * FROM MenuTree ORDER BY sort ASC;
+    </select>
+
+
+    <select id="countTotal" resultType="java.lang.Integer">
+        SELECT count(*)
+        FROM menu
+        <where>
+            parent_id = 0
+            <if test="menuName != null and menuName != ''">
+                AND menu_name like concat('%', #{menuName}, '%')
+            </if>
+            <if test="perms != null and perms != ''">
+                AND perms like concat('%', #{perms}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="selectByMenuId" resultType="com.weizi.common.domain.entity.UmsMenuEntity">
+        SELECT *
+        FROM menu
+        where menu_id = #{menuId}
+    </select>
+
+    <select id="checkCount" resultType="java.lang.Integer">
+        SELECT COUNT(*)
+        FROM menu
+        <choose>
+            <when test="(menuName != null or path!= null) and menuName != '' and path!= ''">
+                <where>
+                    parent_id = #{parentId}
+                    <if test="menuName != null">
+                        AND menu_name = #{menuName}
+                    </if>
+                    <if test="path != null">
+                        AND path = #{path}
+                    </if>
+                    <if test="menuId != null">
+                        AND menu_id != #{menuId}
+                    </if>
+                </where>
+            </when>
+            <otherwise>
+                WHERE 1 = 0
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="getChildMenusByParentId" resultType="java.lang.Long">
+        SELECT menu_id
+        FROM menu
+        WHERE parent_id = #{menuId}
+    </select>
+<!--获取列表相关 End-->
+
+<!--删除相关接口 Start-->
+    <select id="getChildrenMenuIds" resultType="java.lang.Long">
+        WITH RECURSIVE MenuTree AS (
+        SELECT menu_id FROM menu WHERE parent_id IN
+        <foreach collection="menuIds" item="parentId" open="(" close=")" separator=",">
+            #{parentId}
+        </foreach>
+        UNION ALL
+        SELECT m.menu_id FROM menu m INNER JOIN MenuTree mt ON m.parent_id = mt.menu_id
+        )
+        SELECT menu_id FROM MenuTree;
+    </select>
+
+    <delete id="deleteMenusByMenuIds" parameterType="java.util.List">
+        DELETE FROM menu
+        WHERE menu_id IN
+        <foreach item="menuId" collection="menuIds" open="(" separator="," close=")">
+            #{menuId}
+        </foreach>
+    </delete>
+
+    <delete id="deleteRoleToMenuByMenuIds" parameterType="java.util.List">
+        DELETE FROM role_to_menu
+        WHERE menu_id IN
+        <foreach item="menuId" collection="menuIds" open="(" separator="," close=")">
+            #{menuId}
+        </foreach>
+    </delete>
+<!--删除相关接口 End-->
+</mapper>

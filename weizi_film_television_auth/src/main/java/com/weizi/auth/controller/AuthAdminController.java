@@ -1,0 +1,33 @@
+package com.weizi.auth.controller;
+
+import com.weizi.common.domain.dto.AdminLoginDto;
+import com.weizi.common.response.WeiZiResult;
+import com.weizi.common.service.IAuthService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+/**
+ * 认证接口
+ */
+@RestController
+@RequestMapping("admin/auth")
+@Slf4j
+public class AuthAdminController {
+    private final IAuthService authService;
+
+    public AuthAdminController(IAuthService authService) {
+        this.authService = authService;
+    }
+
+    /**
+     * 系统用户登录
+     */
+    @RequestMapping("login")
+    public WeiZiResult login(@RequestBody AdminLoginDto adminLoginDto) {
+        log.info("adminLoginDto====》{}", adminLoginDto);
+        String token = authService.login(adminLoginDto);
+        return WeiZiResult.success().put("token", token);
+    }
+}
