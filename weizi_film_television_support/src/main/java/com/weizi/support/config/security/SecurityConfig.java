@@ -2,7 +2,9 @@ package com.weizi.support.config.security;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.weizi.common.response.WeiZiResult;
+import com.weizi.common.utils.JwtUtils;
 import com.weizi.support.filter.JwtAuthticationFilter;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
@@ -14,6 +16,7 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -35,9 +38,12 @@ public class SecurityConfig {
 
     private final JwtAuthticationFilter jwtAuthticationFilter;
 
-    public SecurityConfig(AdminDetailsService adminDetailsService, JwtAuthticationFilter jwtAuthticationFilter) {
+    private final JwtUtils jwtUtils;
+
+    public SecurityConfig(AdminDetailsService adminDetailsService, JwtAuthticationFilter jwtAuthticationFilter, JwtUtils jwtUtils) {
         this.adminDetailsService = adminDetailsService;
         this.jwtAuthticationFilter = jwtAuthticationFilter;
+        this.jwtUtils = jwtUtils;
     }
 
     @Bean
@@ -55,6 +61,9 @@ public class SecurityConfig {
 
         http.exceptionHandling(exceptionHandling -> exceptionHandling
                 .authenticationEntryPoint(this::onAuthenticationFailure));
+        http.logout(logout -> logout
+                        .logoutUrl("/admin/auth/logout") // 指定注销 URL
+                        .logoutSuccessHandler(this::onLogoutSuccess)); // 指定注销成功处理器
         return http.build();
     }
 
@@ -92,4 +101,15 @@ public class SecurityConfig {
         response.setCharacterEncoding("utf-8");
         response.getWriter().write(JSONObject.toJSONString(WeiZiResult.error(HttpServletResponse.SC_FORBIDDEN, "请重新登录！")));
     }
+
+    public void onLogoutSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException {
+        // 例如，清除 session
+        request.getSession().invalidate();
+        // 通过jwt加密过的
+        String token = request.getHeader("Weizi-Authorization");
+        // 调用清除 token 的方法
+        jwtUtils.clearToken(token);
+        response.getWriter().write(JSONObject.toJSONString(WeiZiResult.success()));
+    }
+
 }

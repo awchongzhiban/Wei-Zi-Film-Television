@@ -24,7 +24,7 @@ export function saveMenu(data) {
     return request({
         url: '/admin/menu/save',
         method: "POST",
-        params: data
+        data: data
     })
 }
 // 更新菜单
@@ -32,7 +32,7 @@ export function updateMenu(data) {
     return request({
         url: '/admin/menu/update',
         method: "POST",
-        params: data
+        data: data
     })
 }
 // 移除菜单

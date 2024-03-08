@@ -9,3 +9,11 @@ export function adminLogin(data) {
         data: data
     })
 }
+
+// 登出接口
+export function adminLogout() {
+    return request({
+        url: '/admin/auth/logout',
+        method: "POST"
+    })
+}

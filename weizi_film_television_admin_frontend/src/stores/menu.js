@@ -2,22 +2,19 @@
 import { defineStore } from 'pinia'
 // 导入查询用户菜单接口
 import { searchSelfRouter } from '@/api/admin/index.js'
-// const modules = import.meta.glob('../views/**/*.vue')
 // 定义 store 并导出
 export const useMenuStore = defineStore('menu', {
     // 定义状态【数据】
     state: () => ({
         menuList: [],
         routerList: [], // 动态路由数据，也就是左侧菜单的路由信息
-        tabList: [{title:'首页',path:"/index",isClose: false}],// 所有的tab
-        activeTab: '/index'// 当前选中的tab，通过path体现
+        breadcrumbList: [],
     }),
     // 获取数据的方法
     getters: {
         Array: (state) => state.menuList,
         Array: (state) => state.routerList,
-        Array: (state) => state.tabList,
-        String: (state) => state.activeTab
+        Array: (state) => state.breadcrumbList,
     },
 
     // 修改数据方法
@@ -75,32 +72,17 @@ export const useMenuStore = defineStore('menu', {
                 })
             })
         },
-        // 设置tabList {title:'首页',path:'/index'}
-        setTabList(data) {
-            this.tabList.push(data);
+        updateBreadcrumbList(newList) {
+            this.breadcrumbList = newList;
         },
-        // 删除tabList
-        delTabList(name) {
-            // 一定要重新赋值
-            this.tabList = this.tabList.filter(item => {
-                if(item.path == name) {
-                    return false
-                }else {
-                    return true;
-                }
-            })
-        },
-        // 设置activeTab
-        setActive(name) {
-            this.activeTab = name;
-        }
     },
-
+    /*为什么使用持久化就不行了，原因是因为只进行了判断是否有数据，并没有判断router里面是否有被addRouter过，
+    如果刷新页面后获取到的routerList就直接判断路径是否存在了，实际上这时候router里面只有白名单数据*/
     // 使用持久化
-    // persist: {
-    // 	enabled: true,
-    //     storage: localStorage,
-    //     key: 'useMenu',
-    //     path: ['menuList','routerList']
-    // }
+    /*persist: {
+    	enabled: true,
+        storage: localStorage,
+        key: 'useMenu',
+        path: ['menuList','routerList']
+    }*/
 })

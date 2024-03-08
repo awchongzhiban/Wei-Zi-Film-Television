@@ -22,6 +22,10 @@ export const useAdminStore = defineStore('admin', {
             this.nickname = data.nickname;
             this.avatar = data.avatar;
         },
+        setAdminAvatar(avatar) {
+            this.avatar = avatar;
+            this.$patch({ avatar });
+        },
     },
 
     // 使用持久化

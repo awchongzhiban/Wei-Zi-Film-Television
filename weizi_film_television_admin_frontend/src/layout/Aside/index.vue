@@ -5,14 +5,13 @@
         text-color="#b1becd"
         active-text-color="#336cab"
         style="border-right: none;"
+        :default-active="defaultActive"
     >
       <!-- 遍历子元素 -->
       <template v-for="menu in menuList" :key="menu.path">
         <!-- 判断是否有子菜单 -->
         <el-sub-menu v-if="hasChildren(menu) && menu.menuType !== 'BUTTON'" :index="menu.path">
           <template #title>
-            <!-- <Edit style="width: 1em; height: 1em; margin-right: 8px" /> -->
-            <!-- <el-icon><Setting /></el-icon> -->
             <!-- 添加icon -->
             <svg-icon
                 v-if="menu.icon"
@@ -30,8 +29,6 @@
                 :index="children.path"
                 @click="handleRouter(children)"
             >
-              <!-- <Edit style="width: 1em; height: 1em; margin-right: 8px" /> -->
-              <!-- <el-icon><Setting /></el-icon> -->
               <svg-icon
                   v-if="children.icon"
                   slot="prefix"
@@ -46,8 +43,6 @@
 
         <!-- 没有子菜单 -->
         <el-menu-item v-else-if="menu.menuType !== 'BUTTON'" :index="menu.path" @click="handleRouter(menu)">
-          <!-- <Edit style="width: 1em; height: 1em; margin-right: 8px" /> -->
-          <!-- <el-icon><Setting /></el-icon> -->
           <svg-icon
               v-if="menu.icon"
               slot="prefix"
@@ -79,15 +74,58 @@ function hasChildren(menu) {
 
 // 切换路由
 function handleRouter(menu) {
-  // 向tabList中添加数据，已经添加过的就不需要添加了
-  // 数据结构：{title:'首页',path:'/index'}
-  let hasNode = menuStore.tabList.filter(item => item.path === menu.path)
-  // 没有
-  if (hasNode == null || hasNode.length == 0) {
-    let data = {title: menu.menuName, path: menu.path};
-    menuStore.setTabList(data)
-  }
+  generateBreadcrumbList(menu);
   router.push(menu.path);
+}
+// 根据当前路由信息生成面包屑列表
+function generateBreadcrumbList(menu) {
+  const breadcrumbList = [];
+  // 如果 parentId 不为 0，则获取父级菜单名称并加入面包屑列表
+  if (menu.parentId !== 0) {
+    const parentMenuName = getParentMenuName(menu.parentId);
+    breadcrumbList.push(parentMenuName);
+  }
+  // 递归获取当前菜单项及其父菜单的名称
+  const getCurrentAndParentName = (item) => {
+    // 检查当前菜单项的名称是否已经在 breadcrumbList 中
+    if (!breadcrumbList.includes(item.menuName)) {
+      breadcrumbList.push(item.menuName);
+    }
+    if (item.parentId !== 0) {
+      const parentMenuName = getParentMenuName(item.parentId);
+      // 检查父级菜单名称是否已经在 breadcrumbList 中
+      if (!breadcrumbList.includes(parentMenuName)) {
+        breadcrumbList.unshift(parentMenuName);
+      }
+    }
+    if (item.parent) {
+      getCurrentAndParentName(item.parent);
+    }
+  };
+  getCurrentAndParentName(menu);
+  menuStore.updateBreadcrumbList(breadcrumbList);
+}
+
+// 根据 parentId 获取父级菜单的名称
+function getParentMenuName(parentId) {
+  const parentMenu = menuList.value.find(item => item.menuId === parentId);
+  return parentMenu ? parentMenu.menuName : '';
+}
+
+// 获取默认选中的菜单项
+const defaultActive = getDefaultActiveMenu();
+
+function getDefaultActiveMenu() {
+  // 获取当前路由信息
+  const currentRoute = router.currentRoute.value;
+  // 根据当前路由信息找到对应的菜单项
+  const defaultMenu = menuList.value.find(menu => menu.path === currentRoute.path);
+  // 如果找到了菜单项，则返回其 index 属性值
+  if (defaultMenu) {
+    return defaultMenu.path;
+  }
+  // 如果未找到菜单项，则返回空字符串
+  return '';
 }
 </script>
 

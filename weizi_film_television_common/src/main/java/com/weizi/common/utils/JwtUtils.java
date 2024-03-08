@@ -99,4 +99,15 @@ public class JwtUtils {
         // 将用户数据缓存到redis中
         redisCacheUtil.setCacheObject(CacheConstants.LOGIN_ADMIN_KEY + loginAdminVO.getToken(),loginAdminVO,30, TimeUnit.MINUTES);
     }
+
+    public void clearToken(String token) {
+        if(StrUtil.isNotEmpty(token)) {
+            // 解析token
+            Claims claims = parseToken(token);
+            String parseToken = (String) claims.get("token");
+            String redisKey = CacheConstants.LOGIN_ADMIN_KEY + parseToken;
+            // 从 Redis 中删除指定的 key
+            redisCacheUtil.deleteObject(redisKey);
+        }
+    }
 }

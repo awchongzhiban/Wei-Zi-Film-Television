@@ -90,6 +90,7 @@ function handleLogin() {
           // 跳转页面  /index
           // 1、渲染动态路由【在路由守卫上渲染】
           // 2、开发项目主页面 【左侧导航、头部、主体部分】
+          menuStore.updateBreadcrumbList(["首页"])
           router.push("/admin-index")
         }
       })
@@ -102,7 +103,7 @@ function handleLogin() {
       })
     }
   })
-};
+}
 
 </script>
 

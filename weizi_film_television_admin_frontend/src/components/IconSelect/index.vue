@@ -23,7 +23,7 @@
   
   <script setup>
   import icons from './requestIcon'
-  import { ref,defineProps,defineEmits } from 'vue';
+  import { ref,defineEmits } from 'vue';
   // 声明事件
   const emit = defineEmits(['selected'])
   

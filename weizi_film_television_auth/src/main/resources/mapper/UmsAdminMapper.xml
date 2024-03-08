@@ -58,10 +58,22 @@
         </where>
 
     </select>
-    <select id="selectAdminPage" resultType="com.weizi.common.domain.entity.UmsAdminEntity">
-        SELECT *
+    <select id="selectAdminPage" resultType="com.weizi.common.domain.vo.list.AdminVO">
+        SELECT
+            admin_id,
+            username,
+            nickname,
+            email,
+            mobile,
+            sex,
+            avatar,
+            status,
+            remark,
+            create_time,
+            update_time
         FROM admin
         <where>
+            deleted = 0
             <if test="username != null and username != ''">
                 AND username like concat('%', #{username}, '%')
             </if>
@@ -96,8 +108,19 @@
             </if>
         </where>
     </select>
-    <select id="searchAdminById" resultType="com.weizi.common.domain.entity.UmsAdminEntity">
-        SELECT *
+    <select id="searchAdminById" resultType="com.weizi.common.domain.vo.list.AdminVO">
+        SELECT
+            admin_id,
+            username,
+            nickname,
+            email,
+            mobile,
+            sex,
+            avatar,
+            status,
+            remark,
+            create_time,
+            update_time
         FROM admin
         <where>
             admin_id = #{adminId}

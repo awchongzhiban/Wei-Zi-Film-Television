@@ -61,13 +61,13 @@ public class JwtAuthticationFilter extends OncePerRequestFilter {
         // 获取请求的接口路径
         String requestUri = request.getRequestURI();
         log.info("requestUri===>{}",requestUri);
-        if (requestUri.startsWith("/admin/admin/info") || requestUri.startsWith("/admin/menu/self")) return true;
+        if (requestUri.startsWith("/admin/admin/info") || requestUri.startsWith("/admin/menu/self") || requestUri.startsWith("/admin/admin/logout")) return true;
         requestUri = convertPagePathToPermission(requestUri);
         // 遍历用户的权限信息，检查是否存在与请求路径匹配的权限
         for (GrantedAuthority authority : authorities) {
             // 获取权限字符串
             String authorityString = authority.getAuthority();
-            // 对比权限与请求路径是否匹配，这里简单地使用 startsWith 进行匹配，您可以根据实际情况调整匹配逻辑
+            // 对比权限与请求路径是否匹配，这里简单地使用 startsWith 进行匹配，可以根据实际情况调整匹配逻辑
             log.info("authorityString===>{}",authorityString);
             if (requestUri.startsWith(authorityString)) {
                 return true; // 用户具有调用当前接口的权限

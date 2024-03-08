@@ -30,6 +30,7 @@
         <hutool.version>5.8.22</hutool.version>
         <springfox.version>3.0.0</springfox.version>
         <lombok.version>1.18.30</lombok.version>
+        <commons.version>2.15.1</commons.version>
         <weizi.version>1.0.0</weizi.version>
         <jwt.version>0.9.1</jwt.version>
         <jxb.version>2.3.1</jxb.version>
@@ -120,6 +121,12 @@
                 <artifactId>lombok</artifactId>
                 <version>${lombok.version}</version>
             </dependency>
+            <dependency>
+                <groupId>commons-io</groupId>
+                <artifactId>commons-io</artifactId>
+                <version>${commons.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>com.weizi</groupId>
                 <artifactId>weizi_film_television_support</artifactId>

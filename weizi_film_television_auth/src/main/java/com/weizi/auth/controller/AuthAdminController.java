@@ -1,6 +1,6 @@
 package com.weizi.auth.controller;
 
-import com.weizi.common.domain.dto.AdminLoginDto;
+import com.weizi.common.domain.dto.AdminLoginDTO;
 import com.weizi.common.response.WeiZiResult;
 import com.weizi.common.service.IAuthService;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ public class AuthAdminController {
      * 系统用户登录
      */
     @RequestMapping("login")
-    public WeiZiResult login(@RequestBody AdminLoginDto adminLoginDto) {
+    public WeiZiResult login(@RequestBody AdminLoginDTO adminLoginDto) {
         log.info("adminLoginDto====》{}", adminLoginDto);
         String token = authService.login(adminLoginDto);
         return WeiZiResult.success().put("token", token);

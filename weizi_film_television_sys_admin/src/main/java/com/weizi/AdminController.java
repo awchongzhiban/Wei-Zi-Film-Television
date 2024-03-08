@@ -2,12 +2,16 @@ package com.weizi;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.weizi.common.constants.FileConstants;
-import com.weizi.common.domain.dto.UmsAdminParamDto;
-import com.weizi.common.domain.entity.UmsAdminEntity;
+import com.weizi.common.domain.dto.dataParam.AdminDTO;
+import com.weizi.common.domain.vo.list.AdminVO;
+import com.weizi.common.domain.dto.pageParam.AdminParamDTO;
+import com.weizi.common.mapper.UmsAdminMapper;
 import com.weizi.common.response.WeiZiPageResult;
 import com.weizi.common.response.WeiZiResult;
 import com.weizi.common.service.IUmsAdminService;
-import com.weizi.support.config.uploadimage.ImageUploader;
+import com.weizi.common.utils.imageutils.ImageUtils;
+import com.weizi.common.utils.security.WeiZiSecurityUtil;
+import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,8 +21,8 @@ import java.io.IOException;
 import java.util.List;
 
 /**
- * @date 石添
- * @date 2023/12/24
+ * @date AWei
+ * @date 2024/02/24
  */
 @RestController
 @RequestMapping("admin/admin")
@@ -29,13 +33,18 @@ public class AdminController {
     @Value("${file-upload.avatar.image-types}")
     private List<String> supportedAvatarTypes;
 
+    @Value("${item.avatar-path}")
+    private String avatarPath;
+
     @Autowired
-    private ImageUploader imageUploader;
+    private ImageUtils imageUtils;
 
     private final IUmsAdminService adminService;
+    private final UmsAdminMapper adminMapper;
 
-    public AdminController(IUmsAdminService adminService) {
+    public AdminController(IUmsAdminService adminService, UmsAdminMapper adminMapper) {
         this.adminService = adminService;
+        this.adminMapper = adminMapper;
     }
 
     @GetMapping("/info")
@@ -44,11 +53,11 @@ public class AdminController {
     }
 
     /**
-     * 获取菜单列表
+     * 获取管理员列表
      */
     @GetMapping("list")
-    public WeiZiResult selectList(UmsAdminParamDto adminParamDto) {
-        WeiZiPageResult<UmsAdminEntity> adminList = adminService.selectList(adminParamDto);
+    public WeiZiResult selectList(AdminParamDTO adminParamDto) {
+        WeiZiPageResult<AdminVO> adminList = adminService.selectList(adminParamDto);
         return WeiZiResult.success(adminList);
     }
 
@@ -60,39 +69,48 @@ public class AdminController {
         if (ObjectUtil.isNull(adminId)) {
             return WeiZiResult.error("adminId不可为空！");
         }
-        UmsAdminEntity admin = adminService.searchAdminById(adminId);
+        AdminVO admin = adminService.searchAdminById(adminId);
         if (ObjectUtil.isNotNull(admin))
             return WeiZiResult.success(admin);
         return WeiZiResult.error("该管理员不存在！");
     }
 
     /**
-     * 保存菜单
+     * 保存管理员
      */
     @PostMapping("save")
-    public WeiZiResult save(UmsAdminEntity umsAdminEntity) {
-        if (ObjectUtil.isNotEmpty(umsAdminEntity))
-            return adminService.saveAdmin(umsAdminEntity);
-        return WeiZiResult.error("菜单不可为空");
+    public WeiZiResult save(@RequestBody AdminDTO adminDTO) {
+        if (ObjectUtil.isNotEmpty(adminDTO))
+            return adminService.saveAdmin(adminDTO);
+        return WeiZiResult.error("数据不可为空");
     }
 
     /**
-     * 更新菜单
+     * 更新管理员
      */
     @PostMapping("update")
-    public WeiZiResult update(UmsAdminEntity umsAdminEntity) {
-        if (ObjectUtil.isNotEmpty(umsAdminEntity))
-            return adminService.updateAdmin(umsAdminEntity);
-        return WeiZiResult.error("菜单不可为空");
+    public WeiZiResult update(@RequestBody AdminDTO adminDTO) {
+        adminDTO.setAvatar(null);
+        if (ObjectUtil.isNotEmpty(adminDTO))
+            return adminService.updateAdmin(adminDTO);
+        return WeiZiResult.error("数据不可为空");
     }
 
     /**
-     * 删除菜单（二合一删除单个和多个都可以）
+     * 删除管理员
      */
     @GetMapping("delete")
     public WeiZiResult delete(@RequestParam("adminId") Long adminId) {
         if (ObjectUtil.isNotEmpty(adminId)) {
-            return adminService.deleteByAdminId(adminId);
+            if (ObjectUtil.isNotNull(WeiZiSecurityUtil.getLoginAdmin().getId()) && !WeiZiSecurityUtil.getLoginAdmin().getId().equals(adminId)) {
+                // 先获取原本的头像数据
+                AdminVO admin = adminService.searchAdminById(adminId);
+                if (ObjectUtil.isNotNull(admin) && ObjectUtil.isNotNull(admin.getAvatar()))
+                    imageUtils.deleteImage(admin.getAvatar(), FileConstants.ADMIN_AVATAR);
+                return adminService.deleteByAdminId(adminId);
+            }
+            else
+                return WeiZiResult.error("不可删除自身");
         }
         return WeiZiResult.error("ID不可为空");
     }
@@ -115,16 +133,25 @@ public class AdminController {
         }
 
         // 判断文件类型是否符合要求
-        if (!supportedAvatarTypes.contains(fileType)) {
+        if (!supportedAvatarTypes.contains(fileType) || ObjectUtil.isNull(fileType)) {
             return WeiZiResult.error("文件类型不支持");
         }
-        String imageFileName = imageUploader.uploadImage(file, FileConstants.ADMIN_AVATAR);
-        System.out.println("imageFileName: "+imageFileName);
+        String imageFileName = imageUtils.uploadImage(file, FileConstants.ADMIN_AVATAR);
+        // 判断文件名是否为空
         if (ObjectUtil.isNotNull(imageFileName)) {
-            if (adminService.updateAdminAvatar(imageFileName, adminId))
-                return WeiZiResult.success(file.getBytes());
+            // 先获取原本的头像数据
+            AdminDTO admin = adminMapper.selectById(adminId);
+            // 更新成功后删除原本的头像文件，防止冗余
+            if (adminService.updateAdminAvatar(imageFileName, adminId)) {
+                if (ObjectUtil.isNotNull(admin) && ObjectUtil.isNotNull(admin.getAvatar()))
+                    imageUtils.deleteImage(admin.getAvatar(), FileConstants.ADMIN_AVATAR);
+                // 获取头像文件路径
+                String avatarFilePath = avatarPath + imageFileName;
+                String extension = FilenameUtils.getExtension(avatarFilePath);
+                // 将头像文件转换为 Base64 编码的字符串并设置到实体对象中
+                return WeiZiResult.success("上传成功", "data:image/" + extension.toLowerCase() + ";base64," + imageUtils.encodeImageToBase64(avatarFilePath));
+            }
         }
-        // 文件上传逻辑...
         return WeiZiResult.error("文件上传失败");
     }
 

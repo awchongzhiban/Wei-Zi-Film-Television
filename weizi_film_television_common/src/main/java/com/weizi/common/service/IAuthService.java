@@ -1,7 +1,7 @@
 package com.weizi.common.service;
 
-import com.weizi.common.domain.dto.AdminLoginDto;
+import com.weizi.common.domain.dto.AdminLoginDTO;
 
 public interface IAuthService {
-    String login(AdminLoginDto adminLoginDto);
+    String login(AdminLoginDTO adminLoginDto);
 }

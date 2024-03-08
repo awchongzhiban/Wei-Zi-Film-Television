@@ -43,8 +43,8 @@
         </el-table-column>
         <el-table-column prop="sort" label="排序" width="80"/>
         <el-table-column prop="componentPath" label="组件路径" width="200" />
-        <el-table-column prop="createTime" label="创建时间" width="200" :formatter="_formatDateTime"/>
-        <el-table-column prop="updateTime" label="修改时间" width="200" :formatter="_formatDateTime"/>
+        <el-table-column prop="createTime" label="创建时间" width="200"/>
+        <el-table-column prop="updateTime" label="修改时间" width="200"/>
         <el-table-column prop="remark" label="备注" width="200" />
         <el-table-column fixed="right" label="操作" width="200">
             <template #default="scope">
@@ -174,7 +174,6 @@ import {onMounted, ref} from 'vue'
 import IconSelect from '@/components/IconSelect/index.vue'
 // 导入接口
 import {searchMenuList, searchMenuById, saveMenu, updateMenu, removeMenu} from '@/api/menu/index.js'
-import {dateTimeFormat} from "@/utils/timeUtil/timeFormat.js";
 
 const formRef = ref(null);
 
@@ -223,6 +222,7 @@ let rules = ref({
   ],
   perms: [
     {
+      required: true,
       trigger: 'blur',
       validator: (rule, value, callback) => {
         if (!value) {
@@ -240,21 +240,6 @@ let rules = ref({
 
 // 树形选择器
 let menuSelectData = ref([])
-// 菜单类型选择器
-let menuTypeOptions = ref([
-    {
-        value: "DIRECTORY",
-        label: "目录"
-    },
-    {
-        value: "MENU",
-        label: "菜单"
-    },
-    {
-        value: "BUTTON",
-        label: "按钮"
-    }
-])
 
 let menuList = ref([])
 onMounted(() => {
@@ -461,11 +446,6 @@ function handleClose() {
 // 选择图标
 function handleSelect(name) {
   form.value.icon = name;
-}
-
-function _formatDateTime(row, column) {
-  // 调用 dateTimeFormat 方法来格式化时间数据
-  return dateTimeFormat(row[column.property]);
 }
 
 function _generateTree(menuList) {

@@ -5,7 +5,7 @@ import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.weizi.common.constants.HttpStatus;
-import com.weizi.common.domain.dto.UmsMenuParamDto;
+import com.weizi.common.domain.dto.pageParam.MenuParamDTO;
 import com.weizi.common.domain.entity.UmsMenuEntity;
 import com.weizi.common.domain.vo.RouterVO;
 import com.weizi.common.mapper.UmsMenuMapper;
@@ -43,7 +43,7 @@ public class UmsMenuServiceImpl extends ServiceImpl<UmsMenuMapper, UmsMenuEntity
     }
 
     @Override
-    public WeiZiPageResult<UmsMenuEntity> selectList(UmsMenuParamDto menuParamDto) {
+    public WeiZiPageResult<UmsMenuEntity> selectList(MenuParamDTO menuParamDto) {
         // 这里是从数据库获取数据
         WeiZiPageResult<UmsMenuEntity> parentMenuList = _selectPage(menuParamDto);
         List<UmsMenuEntity> record = parentMenuList.getList();
@@ -193,7 +193,7 @@ public class UmsMenuServiceImpl extends ServiceImpl<UmsMenuMapper, UmsMenuEntity
         return childrenList;
     }
 
-    private WeiZiPageResult<UmsMenuEntity> _selectPage(UmsMenuParamDto menuParamDto) {
+    private WeiZiPageResult<UmsMenuEntity> _selectPage(MenuParamDTO menuParamDto) {
         // 计算分页查询的偏移量
         Long pageNum = (menuParamDto.getPageNum() - 1) * menuParamDto.getPageSize();
         // 执行分页查询

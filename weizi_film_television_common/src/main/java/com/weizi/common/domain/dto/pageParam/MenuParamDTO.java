@@ -1,4 +1,4 @@
-package com.weizi.common.domain.dto;
+package com.weizi.common.domain.dto.pageParam;
 
 import com.weizi.common.request.PageParam;
 import lombok.Data;
@@ -8,7 +8,7 @@ import lombok.Data;
  * @date 2024/02/12
  */
 @Data
-public class UmsMenuParamDto extends PageParam {
+public class MenuParamDTO extends PageParam {
 
     private String menuName;
     private String perms;

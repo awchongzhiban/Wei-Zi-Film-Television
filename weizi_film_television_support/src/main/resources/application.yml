@@ -1,14 +1,14 @@
 spring:
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://192.168.31.254:3307/weizi_film_television?useUnicode=true&characterEncoding=utf-8
+    url: jdbc:mariadb://192.168.31.5:3307/weizi_film_television?useUnicode=true&characterEncoding=utf-8
     username: root
     password: root
   # 配置Redis
   data:
     redis:
       # 地址
-      host: 192.168.31.254
+      host: 192.168.31.5
       # 数据库索引
       database: 0
       # 端口号
@@ -29,12 +29,18 @@ spring:
 file-upload:
   avatar:
     image-types: image/jpeg, image/png
+    image-base64-types:
+      jpg: data:image/jpg;base64,
+      jpeg: data:image/jpeg;base64,
+      png: data:image/png;base64,
     max-size: 5MB
 server:
   port: 9090
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+item:
+  avatar-path: "D:/XiaoBai/admin/avatar/"
 #logging:
 #  level:
 #    org:

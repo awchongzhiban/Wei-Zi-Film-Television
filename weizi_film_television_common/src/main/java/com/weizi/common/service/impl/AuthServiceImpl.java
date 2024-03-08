@@ -2,7 +2,7 @@ package com.weizi.common.service.impl;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.weizi.common.constants.HttpStatus;
-import com.weizi.common.domain.dto.AdminLoginDto;
+import com.weizi.common.domain.dto.AdminLoginDTO;
 import com.weizi.common.domain.vo.LoginAdminVO;
 import com.weizi.common.exception.ServiceException;
 import com.weizi.common.service.IAuthService;
@@ -28,7 +28,7 @@ public class AuthServiceImpl implements IAuthService {
      * login方法
      */
     @Override
-    public String login(AdminLoginDto adminLoginDto) {
+    public String login(AdminLoginDTO adminLoginDto) {
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(adminLoginDto.getAccount(), adminLoginDto.getPassword());
         Authentication authenticate = authenticationManager.authenticate(authentication);

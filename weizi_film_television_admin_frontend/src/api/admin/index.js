@@ -42,7 +42,7 @@ export function saveAdmin(data) {
     return request({
         url: '/admin/admin/save',
         method: "POST",
-        params: data
+        data: data
     })
 }
 // 更新菜单
@@ -50,15 +50,17 @@ export function updateAdmin(data) {
     return request({
         url: '/admin/admin/update',
         method: "POST",
-        params: data
+        data: data
     })
 }
 // 移除菜单
 export function removeAdmin(adminId) {
     return request({
         url: '/admin/admin/delete',
-        method: "POST",
-        data: adminId
+        method: "GET",
+        params: {
+            adminId: adminId
+        }
     })
 }
 
@@ -68,6 +70,5 @@ export function uploadAvatar(formData) {
         url: '/admin/admin/uploadAvatar',
         method: "POST",
         data: formData,
-        responseType: 'blob'
     })
 }

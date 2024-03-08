@@ -1,3 +1,4 @@
+/*
 package com.weizi.auth.controller;
 
 import com.weizi.common.domain.entity.UmsAdminEntity;
@@ -17,9 +18,11 @@ public class UmsAdminController {
         this.adminService = adminService;
     }
 
-    /**
+    */
+/**
      *  新增用户接口
-     */
+     *//*
+
     @PostMapping("add")
     public WeiZiResult addAdmin(@RequestBody UmsAdminEntity admin) {
         boolean isSuccess = adminService.save(admin);
@@ -36,3 +39,4 @@ public class UmsAdminController {
         return WeiZiResult.success(adminEntityList);
     }
 }
+*/

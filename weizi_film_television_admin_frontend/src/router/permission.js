@@ -15,7 +15,6 @@ router.beforeEach((to,from,next) =>{
     // 判断 to 是否处于白名单
     if(whiteRouter.indexOf(to.path) === -1) {
         // 判断routerList中是否有动态路由的数据
-
         if(menuStore.routerList.length === 0) {
             // 设置动态路由数据结构，并且添加到路由中
             menuStore.generateRouter().then(() => {
@@ -26,8 +25,8 @@ router.beforeEach((to,from,next) =>{
                 router.addRoute(
                     {
                         component: Layout,
-                        path: "/",
-                        redirect: 'index',
+                        path: "/admin-index",
+                        redirect: 'admin-index',
                         children: routerList
                     }
                 )

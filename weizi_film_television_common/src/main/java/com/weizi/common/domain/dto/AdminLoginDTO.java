@@ -5,7 +5,7 @@ import lombok.Data;
 import java.io.Serializable;
 
 @Data
-public class AdminLoginDto implements Serializable {
+public class AdminLoginDTO implements Serializable {
     private String account;
     private String password;
     private Integer rememberMe;
