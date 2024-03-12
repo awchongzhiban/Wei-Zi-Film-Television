@@ -28,7 +28,7 @@
         <el-form-item label="功能：">
           <el-button type="primary" @click="handleQuery">搜索</el-button>
           <el-button type="warning" @click="handleRest">重置</el-button>
-          <el-button type="primary" @click="handleAdd()">新增</el-button>
+          <el-button v-if="showSave" type="primary" @click="handleAdd()">新增</el-button>
         </el-form-item>
       </el-col>
     </el-row>
@@ -66,10 +66,10 @@
         <el-table-column prop="createTime" label="创建时间" width="200"/>
         <el-table-column prop="updateTime" label="修改时间" width="200"/>
         <el-table-column prop="remark" label="备注" width="200" />
-        <el-table-column fixed="right" label="操作" width="200">
+        <el-table-column v-if="showUpdate || showDelete" fixed="right" label="操作" width="200">
             <template #default="scope">
-                <el-button link type="success" size="small" @click="handleEdit(scope.row.adminId)">修改</el-button>
-                <el-button link type="danger" size="small" @click="handleRemove(scope.row.adminId, scope.row.username)">删除</el-button>
+                <el-button v-if="showUpdate" link type="success" size="small" @click="handleEdit(scope.row.adminId)">修改</el-button>
+                <el-button v-if="showDelete" link type="danger" size="small" @click="handleRemove(scope.row.adminId, scope.row.username)">删除</el-button>
             </template>
         </el-table-column>
     </el-table>
@@ -81,10 +81,10 @@
     </div>
 
     <!-- 新增和修改的弹窗 -->
-  <el-dialog v-model="adminFormShow" :title="adminTitle" width="50%" :before-close="handleClose">
+  <el-dialog v-if="showSave || showUpdate" v-model="adminFormShow" :title="adminTitle" width="50%" :before-close="handleClose">
     <!-- 表单 -->
     <el-form :model="form" :rules="rules" label-width="120px" ref="formRef">
-      <el-row v-if="isEditMode">
+      <el-row v-if="isEditMode && showUploadAvatar">
         <el-col :span="24">
           <!-- 头像编辑时显示 -->
           <el-form-item label="头像" prop="avatar">
@@ -191,12 +191,20 @@ import {onMounted, ref} from 'vue'
 // 导入接口
 import {removeAdmin, saveAdmin, searchAdminById, searchAdminList, updateAdmin, uploadAvatar} from '@/api/admin/index.js'
 import {useAdminStore} from "@/stores/admin.js";
+import {useMenuStore} from "@/stores/menu.js";
 import { storeToRefs } from 'pinia';
 const adminStore = useAdminStore();
 let { adminId } = storeToRefs(adminStore);
+const menuStore = useMenuStore();
+const { buttonPermissions } = storeToRefs(menuStore)
 
 const formRef = ref(null);
 const uploadRef = ref(null);
+// 初始化按钮显示状态为false
+const showUploadAvatar = ref(false);
+const showSave = ref(false);
+const showUpdate = ref(false);
+const showDelete = ref(false);
 
 let total = ref(0)
 
@@ -287,6 +295,12 @@ let defaultAvatar = "/defaultimg/default_avatar.png";
 let adminList = ref([])
 onMounted(() => {
     handleSearchAdminList();
+    showUploadAvatar.value = buttonPermissions.value.includes('admin:admin:uploadAvatar');
+    showSave.value = buttonPermissions.value.includes('admin:admin:save');
+    showUpdate.value = buttonPermissions.value.includes('admin:admin:update');
+    showDelete.value = buttonPermissions.value.includes('admin:admin:delete');
+  console.log("permissionButtonList: ",buttonPermissions.value)
+  console.log("showSave.value: ",showSave.value);
 })
 
 function getAvatarUrl(base64String) {
@@ -413,6 +427,7 @@ function handleSubmit() {
 
 // 新增按钮，弹出表单
 function handleAdd() {
+  isEditMode.value = false;
   adminFormShow.value = true;
   adminTitle.value = "新增管理员";
 }
@@ -474,7 +489,6 @@ function handleRemove(adminId, username) {
 
 // 关闭弹窗
 function handleClose() {
-  isEditMode.value = false;
   adminFormShow.value = false;
   form.value = {...initialFormValue};
   // 清空表单验证状态和错误信息

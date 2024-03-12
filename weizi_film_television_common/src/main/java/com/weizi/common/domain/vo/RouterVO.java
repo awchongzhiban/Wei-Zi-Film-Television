@@ -20,5 +20,6 @@ public class RouterVO implements Serializable {
     private String componentPath;
     private String icon;
     private String menuType;
+    private String perms;
     private List<RouterVO> children = new ArrayList<>();
 }

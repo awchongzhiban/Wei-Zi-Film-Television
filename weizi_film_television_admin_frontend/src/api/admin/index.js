@@ -3,7 +3,6 @@ import request from '@/utils/request.js';
 
 // 登录当前用户的路由和接口
 export function searchSelfRouter() {
-
     return request({
         url: '/admin/menu/self',
         method: "GET"

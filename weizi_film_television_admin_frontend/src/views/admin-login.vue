@@ -86,6 +86,7 @@ function handleLogin() {
         if (res.data.code == 200) {
           // 将路由信息存储到pinia中
           menuStore.setMenuList(res.data.data)
+          menuStore.setButtonPermissions(res.data.data)
           // 设置动态路由
           // 跳转页面  /index
           // 1、渲染动态路由【在路由守卫上渲染】

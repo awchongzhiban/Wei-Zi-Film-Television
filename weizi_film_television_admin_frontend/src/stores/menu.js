@@ -9,12 +9,14 @@ export const useMenuStore = defineStore('menu', {
         menuList: [],
         routerList: [], // 动态路由数据，也就是左侧菜单的路由信息
         breadcrumbList: [],
+        buttonPermissions: [], // 页面按钮权限 以router作为key
     }),
     // 获取数据的方法
     getters: {
         Array: (state) => state.menuList,
         Array: (state) => state.routerList,
         Array: (state) => state.breadcrumbList,
+        Array: (state) => state.buttonPermissions,
     },
 
     // 修改数据方法
@@ -74,6 +76,28 @@ export const useMenuStore = defineStore('menu', {
         },
         updateBreadcrumbList(newList) {
             this.breadcrumbList = newList;
+        },
+        setButtonPermissions(data) {
+            const buttonPermissions = []; // 存储按钮权限的数组
+
+            const processMenu = (menuItems) => {
+                if (!menuItems) return;
+                menuItems.forEach(item => {
+                    // 如果是按钮类型并且权限不为空，则将权限添加到数组中
+                    if (item.menuType === 'BUTTON' && item.perms && item.perms !== '') {
+                        buttonPermissions.push(item.perms);
+                    }
+                    // 如果存在子菜单，则递归处理子菜单
+                    if (item.children && item.children.length > 0) {
+                        processMenu(item.children);
+                    }
+                });
+            };
+
+            processMenu(data);
+
+            console.log("Button Permissions: ", buttonPermissions);
+            this.buttonPermissions = buttonPermissions;
         },
     },
     /*为什么使用持久化就不行了，原因是因为只进行了判断是否有数据，并没有判断router里面是否有被addRouter过，

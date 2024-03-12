@@ -46,6 +46,7 @@
     const { breadcrumbList } = storeToRefs(menuStore)
     // 导入logout方法
     import { adminLogout } from '@/api/auth/index.js';
+    import {removeToken} from "@/utils/token/index.js";
 
     function getAvatarUrl(base64String) {
       if (!base64String) return "/defaultimg/default_avatar.png";
@@ -58,10 +59,10 @@
       adminLogout().then((res) => {
         // 判断是否成功
         if (res.data.code == 200) {
-          // 将token存储到sessionStorage中
-          sessionStorage.removeItem("weiziToken");
+          removeToken("weiziToken")
           // 清除 menuStore 中的信息 TODO 后期这里也要改成localStorage.removeItem
           menuStore.setMenuList([]);
+          menuStore.setButtonPermissions([]);
           // 清除 adminStore 中的信息
           localStorage.removeItem("adminInfo");
           router.push("/");
