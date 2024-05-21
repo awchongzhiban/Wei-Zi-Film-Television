@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.weizi.common.mapper.UmsMenuMapper">
+<mapper namespace="com.weizi.common.mapper.MenuMapper">
     <!--  根据roleId批量查询菜单  -->
-    <select id="selectAdminByRoleIds" resultType="com.weizi.common.domain.entity.UmsMenuEntity">
+    <select id="selectAdminByRoleIds" resultType="com.weizi.common.domain.po.MenuPO">
 
         select m.menu_id,m.parent_id,m.menu_name,m.sort,m.menu_type,m.path,m.component_path,m.perms,m.icon
         from menu m left join role_to_menu rtm on m.menu_id = rtm.menu_id
@@ -11,18 +11,18 @@
         <foreach collection="roleIds" open="(" close=")" separator="," item="roleId">
             #{roleId}
         </foreach>
-        and m.deleted = 0 and m.status = 0
+        and m.status = 0
     </select>
 
 <!--获取列表相关 Start-->
-    <select id="selectMenusByParentIds" resultType="com.weizi.common.domain.entity.UmsMenuEntity">
+    <select id="selectMenusByParentIds" resultType="com.weizi.common.domain.po.MenuPO">
         SELECT * FROM menu
         WHERE parent_id IN
         <foreach collection="parentIds" item="parentId" open="(" close=")" separator=",">
             #{parentId}
         </foreach>
     </select>
-    <select id="selectMenuPage" resultType="com.weizi.common.domain.entity.UmsMenuEntity">
+    <select id="selectMenuPage" resultType="com.weizi.common.domain.po.MenuPO">
         SELECT *
         FROM menu
         <where>
@@ -38,7 +38,7 @@
         LIMIT #{pageNum}, #{pageSize}
     </select>
 
-    <select id="getChildrenMenu" resultType="com.weizi.common.domain.entity.UmsMenuEntity">
+    <select id="getChildrenMenu" resultType="com.weizi.common.domain.po.MenuPO">
         WITH RECURSIVE MenuTree AS (
         SELECT * FROM menu WHERE parent_id IN
         <foreach collection="parentIds" item="parentId" open="(" close=")" separator=",">
@@ -47,7 +47,7 @@
         UNION ALL
         SELECT m.* FROM menu m INNER JOIN MenuTree mt ON m.parent_id = mt.menu_id
         )
-        SELECT * FROM MenuTree ORDER BY sort ASC;
+        SELECT * FROM MenuTree ORDER BY sort;
     </select>
 
 
@@ -65,7 +65,7 @@
         </where>
     </select>
 
-    <select id="selectByMenuId" resultType="com.weizi.common.domain.entity.UmsMenuEntity">
+    <select id="selectByMenuId" resultType="com.weizi.common.domain.po.MenuPO">
         SELECT *
         FROM menu
         where menu_id = #{menuId}

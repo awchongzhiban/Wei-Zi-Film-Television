@@ -2,15 +2,19 @@ package com.weizi;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.weizi.common.constants.FileConstants;
-import com.weizi.common.domain.dto.dataParam.AdminDTO;
+import com.weizi.common.domain.dto.AdminDTO;
+import com.weizi.common.domain.po.AdminPO;
 import com.weizi.common.domain.vo.list.AdminVO;
 import com.weizi.common.domain.dto.pageParam.AdminParamDTO;
-import com.weizi.common.mapper.UmsAdminMapper;
+import com.weizi.common.domain.vo.list.RoleTagVO;
+import com.weizi.common.mapper.AdminMapper;
 import com.weizi.common.response.WeiZiPageResult;
 import com.weizi.common.response.WeiZiResult;
-import com.weizi.common.service.IUmsAdminService;
+import com.weizi.common.service.AdminService;
 import com.weizi.common.utils.imageutils.ImageUtils;
+import com.weizi.common.utils.redis.AdminTreeService;
 import com.weizi.common.utils.security.WeiZiSecurityUtil;
+import jakarta.validation.Valid;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -39,12 +43,14 @@ public class AdminController {
     @Autowired
     private ImageUtils imageUtils;
 
-    private final IUmsAdminService adminService;
-    private final UmsAdminMapper adminMapper;
+    private final AdminService adminService;
+    private final AdminMapper adminMapper;
+    private final AdminTreeService adminTreeService;
 
-    public AdminController(IUmsAdminService adminService, UmsAdminMapper adminMapper) {
+    public AdminController(AdminService adminService, AdminMapper adminMapper, AdminTreeService adminTreeService) {
         this.adminService = adminService;
         this.adminMapper = adminMapper;
+        this.adminTreeService = adminTreeService;
     }
 
     @GetMapping("/info")
@@ -59,6 +65,15 @@ public class AdminController {
     public WeiZiResult selectList(AdminParamDTO adminParamDto) {
         WeiZiPageResult<AdminVO> adminList = adminService.selectList(adminParamDto);
         return WeiZiResult.success(adminList);
+    }
+
+    /**
+     * 获取当前管理员所拥有的角色列表
+     */
+    @PostMapping("getRoleTagList")
+    public WeiZiResult getRoleTagList() {
+        List<RoleTagVO> roleTagList = adminService.getRoleTagList();
+        return WeiZiResult.success(roleTagList);
     }
 
     /**
@@ -79,7 +94,7 @@ public class AdminController {
      * 保存管理员
      */
     @PostMapping("save")
-    public WeiZiResult save(@RequestBody AdminDTO adminDTO) {
+    public WeiZiResult save(@Valid @RequestBody AdminDTO adminDTO) {
         if (ObjectUtil.isNotEmpty(adminDTO))
             return adminService.saveAdmin(adminDTO);
         return WeiZiResult.error("数据不可为空");
@@ -91,8 +106,12 @@ public class AdminController {
     @PostMapping("update")
     public WeiZiResult update(@RequestBody AdminDTO adminDTO) {
         adminDTO.setAvatar(null);
-        if (ObjectUtil.isNotEmpty(adminDTO))
-            return adminService.updateAdmin(adminDTO);
+        if (ObjectUtil.isNotEmpty(adminDTO)) {
+            if (adminTreeService.isInMyBranch(WeiZiSecurityUtil.getAdminId(), adminDTO.getAdminId()))
+                return adminService.updateAdmin(adminDTO);
+            else
+                return WeiZiResult.error("暂无更新该管理员的权限");
+        }
         return WeiZiResult.error("数据不可为空");
     }
 
@@ -102,6 +121,8 @@ public class AdminController {
     @GetMapping("delete")
     public WeiZiResult delete(@RequestParam("adminId") Long adminId) {
         if (ObjectUtil.isNotEmpty(adminId)) {
+            if (!adminTreeService.isInMyBranch(WeiZiSecurityUtil.getAdminId(), adminId))
+                return WeiZiResult.error("暂无删除该管理员的权限");
             if (ObjectUtil.isNotNull(WeiZiSecurityUtil.getLoginAdmin().getId()) && !WeiZiSecurityUtil.getLoginAdmin().getId().equals(adminId)) {
                 // 先获取原本的头像数据
                 AdminVO admin = adminService.searchAdminById(adminId);
@@ -140,7 +161,7 @@ public class AdminController {
         // 判断文件名是否为空
         if (ObjectUtil.isNotNull(imageFileName)) {
             // 先获取原本的头像数据
-            AdminDTO admin = adminMapper.selectById(adminId);
+            AdminPO admin = adminMapper.selectById(adminId);
             // 更新成功后删除原本的头像文件，防止冗余
             if (adminService.updateAdminAvatar(imageFileName, adminId)) {
                 if (ObjectUtil.isNotNull(admin) && ObjectUtil.isNotNull(admin.getAvatar()))

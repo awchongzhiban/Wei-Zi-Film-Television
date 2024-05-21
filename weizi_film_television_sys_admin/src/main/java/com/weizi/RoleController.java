@@ -1,11 +1,12 @@
 package com.weizi;
 
 import cn.hutool.core.util.ObjectUtil;
+import com.weizi.common.domain.dto.RoleDTO;
 import com.weizi.common.domain.dto.pageParam.RoleParamDTO;
 import com.weizi.common.domain.vo.list.RoleVO;
 import com.weizi.common.response.WeiZiPageResult;
 import com.weizi.common.response.WeiZiResult;
-import com.weizi.common.service.IUmsRoleService;
+import com.weizi.common.service.RoleService;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -16,9 +17,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("admin/role")
 public class RoleController {
 
-    private final IUmsRoleService roleService;
+    private final RoleService roleService;
 
-    public RoleController(IUmsRoleService roleService) {
+    public RoleController(RoleService roleService) {
         this.roleService = roleService;
     }
 
@@ -34,36 +35,36 @@ public class RoleController {
     /**
      * 获取单个详情
      */
-    /*@GetMapping("getDetail")
-    public WeiZiResult searchAdminById(@RequestParam("adminId") Long adminId) {
-        if (ObjectUtil.isNull(adminId)) {
-            return WeiZiResult.error("adminId不可为空！");
+    @GetMapping("getDetail")
+    public WeiZiResult searchRoleById(@RequestParam("roleId") Long roleId) {
+        if (ObjectUtil.isNull(roleId)) {
+            return WeiZiResult.error("roleId不可为空！");
         }
-        UmsAdminVO admin = roleService.searchAdminById(adminId);
-        if (ObjectUtil.isNotNull(admin))
-            return WeiZiResult.success(admin);
+        RoleDTO role = roleService.searchRoleById(roleId);
+        if (ObjectUtil.isNotNull(role))
+            return WeiZiResult.success(role);
         return WeiZiResult.error("该管理员不存在！");
     }
 
-    *//**
+    /**
      * 保存菜单
-     *//*
+     */
     @PostMapping("save")
-    public WeiZiResult save(UmsAdminEntity umsAdminEntity) {
-        if (ObjectUtil.isNotEmpty(umsAdminEntity))
-            return roleService.saveAdmin(umsAdminEntity);
+    public WeiZiResult save(@RequestBody RoleDTO roleDTO) {
+        if (ObjectUtil.isNotEmpty(roleDTO))
+            return roleService.saveRole(roleDTO);
         return WeiZiResult.error("菜单不可为空");
     }
 
-    *//**
+    /**
      * 更新菜单
-     *//*
+     */
     @PostMapping("update")
-    public WeiZiResult update(UmsAdminDTO umsAdminEntity) {
-        if (ObjectUtil.isNotEmpty(umsAdminEntity))
-            return roleService.updateAdmin(umsAdminEntity);
+    public WeiZiResult update(@RequestBody RoleDTO roleDTO) {
+        if (ObjectUtil.isNotEmpty(roleDTO))
+            return roleService.updateRole(roleDTO);
         return WeiZiResult.error("菜单不可为空");
-    }*/
+    }
 
     /**
      * 删除菜单（二合一删除单个和多个都可以）

@@ -2,10 +2,15 @@ package com.weizi.common.utils.security;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.weizi.common.constants.HttpStatus;
+import com.weizi.common.domain.po.RolePO;
 import com.weizi.common.domain.vo.LoginAdminVO;
 import com.weizi.common.exception.ServiceException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @date WeiZi
@@ -13,6 +18,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
  * 获取登陆的用户信息
  */
 public class WeiZiSecurityUtil {
+    @Value("${superadmin.id}")
+    private static Long superAdminId;
 
     /**
      * 获取  Authentication
@@ -32,11 +39,19 @@ public class WeiZiSecurityUtil {
      * 获取用户id
      */
     public static Long getAdminId() {
-        Long userId = getLoginAdmin().getId();
-        if(ObjectUtil.isNull(userId)) {
+        Long adminId = getLoginAdmin().getId();
+        if(ObjectUtil.isNull(adminId)) {
             throw new ServiceException(HttpStatus.FORBIDDEN,"");
         }
-        return userId;
+        return adminId;
+    }
+
+    public static List<Long> getRoleIdList() {
+        List<Long> roleIdList = getLoginAdmin().getAdminPO().getRoleList().stream().map(RolePO::getRoleId).collect(Collectors.toList());
+        if(ObjectUtil.isEmpty(roleIdList)) {
+            throw new ServiceException(HttpStatus.FORBIDDEN,"");
+        }
+        return roleIdList;
     }
 
     /**
@@ -48,6 +63,10 @@ public class WeiZiSecurityUtil {
             throw new ServiceException(HttpStatus.FORBIDDEN,"");
         }
         return username;
+    }
+
+    public static boolean isSuperAdmin() {
+        return WeiZiSecurityUtil.getAdminId().equals(superAdminId);
     }
 
 }

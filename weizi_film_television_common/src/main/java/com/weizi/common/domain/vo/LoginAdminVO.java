@@ -1,13 +1,12 @@
 package com.weizi.common.domain.vo;
 
 import cn.hutool.core.util.ObjectUtil;
-import com.weizi.common.domain.entity.UmsAdminEntity;
+import com.weizi.common.domain.po.AdminPO;
 import lombok.Data;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -21,7 +20,7 @@ public class LoginAdminVO implements UserDetails {
     private String token;
 
     // 管理员信息
-    private UmsAdminEntity umsAdmin;
+    private AdminPO adminPO;
 
     private long loginTime;
 
@@ -30,8 +29,8 @@ public class LoginAdminVO implements UserDetails {
      */
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (ObjectUtil.isNull(umsAdmin)) return Collections.emptyList();
-        List<String> perms = umsAdmin.getPerms();
+        if (ObjectUtil.isNull(adminPO)) return Collections.emptyList();
+        List<String> perms = adminPO.getPerms();
         // 判空返回数据
         if (ObjectUtil.isNotEmpty(perms)) {
             // 排除掉权限为空的
@@ -42,31 +41,31 @@ public class LoginAdminVO implements UserDetails {
 
     @Override
     public String getPassword() {
-        return umsAdmin.getPassword();
+        return adminPO.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return umsAdmin.getUsername();
+        return adminPO.getUsername();
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        return !umsAdmin.getStatus();
+        return !adminPO.getStatus();
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return !umsAdmin.getStatus();
+        return !adminPO.getStatus();
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        return !umsAdmin.getStatus();
+        return !adminPO.getStatus();
     }
 
     @Override
     public boolean isEnabled() {
-        return !umsAdmin.getStatus();
+        return !adminPO.getStatus();
     }
 }

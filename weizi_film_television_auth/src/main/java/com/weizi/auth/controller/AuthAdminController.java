@@ -3,6 +3,7 @@ package com.weizi.auth.controller;
 import com.weizi.common.domain.dto.AdminLoginDTO;
 import com.weizi.common.response.WeiZiResult;
 import com.weizi.common.service.IAuthService;
+import com.weizi.common.utils.redis.AdminTreeService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;

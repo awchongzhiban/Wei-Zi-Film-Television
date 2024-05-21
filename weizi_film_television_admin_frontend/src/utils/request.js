@@ -2,7 +2,6 @@
 // 导入axios
 import axios from 'axios';
 import {getToken} from "@/utils/token/index.js";
-import {ElMessage} from "element-plus";
 import router from "@/router/index.js";
 // 创建axios
 const request = axios.create({
@@ -33,14 +32,10 @@ request.interceptors.request.use((config) => {
 request.interceptors.response.use((response) => {
     // 判断响应码，后端返回的数据  code ，data，msg
     let {msg,code} = response.data
-    console.log("response.data: ",response);
-    console.log("code=====>",code,'msg====>',msg);
     if(code == null) {
         return response;
     }else if(code == 200) {
         return response;
-    }else if(code == 500) {
-        ElMessage.error(msg || '服务端异常！');
     }else if(code == 401) {
         ElMessage.error('没有操作权限！');
     }else if(code == 403) {

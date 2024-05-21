@@ -30,7 +30,7 @@ public class JwtUtils {
     private RedisCacheUtil redisCacheUtil;
     /**
      * 创建token，会将用户数据存放到redis中
-     * 可以方便的四线单点登录，实现踢人下线，查看在线用户等等功能
+     * 可以方便的实现单点登录，实现踢人下线，查看在线用户等等功能
      * 可以使用UUID当做redis的key
      */
     public String createToken(LoginAdminVO loginAdminVO) {

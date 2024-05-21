@@ -31,11 +31,19 @@
         <springfox.version>3.0.0</springfox.version>
         <lombok.version>1.18.30</lombok.version>
         <commons.version>2.15.1</commons.version>
+        <validation.version>2.0.1.Final</validation.version>
         <weizi.version>1.0.0</weizi.version>
         <jwt.version>0.9.1</jwt.version>
         <jxb.version>2.3.1</jxb.version>
         <redis.version>3.1.5</redis.version>
         <fastjson2.version>2.0.39</fastjson2.version>
+        <javacv.version>1.5.10</javacv.version>
+        <ffmpeg.version>6.1.1-1.5.10</ffmpeg.version>
+        <gson.version>2.10.1</gson.version>
+        <codec.version>1.16.1</codec.version>
+        <fileupload.version>1.5</fileupload.version>
+        <websocket.version>3.2.5</websocket.version>
+        <minio.version>8.5.10</minio.version>
     </properties>
 
     <!--  dependencyManagement不会传递  -->
@@ -126,6 +134,11 @@
                 <artifactId>commons-io</artifactId>
                 <version>${commons.version}</version>
             </dependency>
+            <dependency>
+                <groupId>javax.validation</groupId>
+                <artifactId>validation-api</artifactId>
+                <version>${validation.version}</version> <!-- 或者其他版本 -->
+            </dependency>
 
             <dependency>
                 <groupId>com.weizi</groupId>
@@ -146,6 +159,41 @@
                 <groupId>com.weizi</groupId>
                 <artifactId>weizi_film_television_sys_admin</artifactId>
                 <version>${weizi.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bytedeco</groupId>
+                <artifactId>javacv</artifactId>
+                <version>${javacv.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bytedeco</groupId>
+                <artifactId>ffmpeg-platform</artifactId>
+                <version>${ffmpeg.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.code.gson</groupId>
+                <artifactId>gson</artifactId>
+                <version>${gson.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-codec</groupId>
+                <artifactId>commons-codec</artifactId>
+                <version>${codec.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>commons-fileupload</groupId>
+                <artifactId>commons-fileupload</artifactId>
+                <version>${fileupload.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-websocket</artifactId>
+                <version>${websocket.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.minio</groupId>
+                <artifactId>minio</artifactId>
+                <version>${minio.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

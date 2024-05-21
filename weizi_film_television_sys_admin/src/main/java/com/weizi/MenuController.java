@@ -2,11 +2,11 @@ package com.weizi;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.weizi.common.domain.dto.pageParam.MenuParamDTO;
-import com.weizi.common.domain.entity.UmsMenuEntity;
+import com.weizi.common.domain.po.MenuPO;
 import com.weizi.common.domain.vo.RouterVO;
 import com.weizi.common.response.WeiZiPageResult;
 import com.weizi.common.response.WeiZiResult;
-import com.weizi.common.service.IUmsMenuService;
+import com.weizi.common.service.MenuService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,9 +15,9 @@ import java.util.List;
 @RequestMapping("admin/menu")
 public class MenuController {
 
-    private final IUmsMenuService menuService;
+    private final MenuService menuService;
 
-    public MenuController(IUmsMenuService menuService) {
+    public MenuController(MenuService menuService) {
         this.menuService = menuService;
     }
 
@@ -44,7 +44,7 @@ public class MenuController {
      */
     @GetMapping("list")
     public WeiZiResult selectList(MenuParamDTO menuParamDto) {
-        WeiZiPageResult<UmsMenuEntity> menuList = menuService.selectList(menuParamDto);
+        WeiZiPageResult<MenuPO> menuList = menuService.selectList(menuParamDto);
         return WeiZiResult.success(menuList);
     }
 
@@ -56,7 +56,7 @@ public class MenuController {
         if (ObjectUtil.isNull(menuId)) {
             return WeiZiResult.error("menuId不可为空！");
         }
-        UmsMenuEntity menu = menuService.searchMenuById(menuId);
+        MenuPO menu = menuService.searchMenuById(menuId);
         return WeiZiResult.success(menu);
     }
 
@@ -64,9 +64,9 @@ public class MenuController {
      * 保存菜单
      */
     @PostMapping("save")
-    public WeiZiResult save(@RequestBody UmsMenuEntity umsMenuEntity) {
-        if (ObjectUtil.isNotEmpty(umsMenuEntity))
-            return menuService.saveMenu(umsMenuEntity);
+    public WeiZiResult save(@RequestBody MenuPO menuPO) {
+        if (ObjectUtil.isNotEmpty(menuPO))
+            return menuService.saveMenu(menuPO);
         return WeiZiResult.error("菜单不可为空");
     }
 
@@ -74,9 +74,9 @@ public class MenuController {
      * 更新菜单
      */
     @PostMapping("update")
-    public WeiZiResult update(@RequestBody UmsMenuEntity umsMenuEntity) {
-        if (ObjectUtil.isNotEmpty(umsMenuEntity))
-            return menuService.updateMenu(umsMenuEntity);
+    public WeiZiResult update(@RequestBody MenuPO menuPO) {
+        if (ObjectUtil.isNotEmpty(menuPO))
+            return menuService.updateMenu(menuPO);
         return WeiZiResult.error("菜单不可为空");
     }
 

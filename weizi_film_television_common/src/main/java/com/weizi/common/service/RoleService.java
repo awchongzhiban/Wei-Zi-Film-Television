@@ -1,20 +1,20 @@
 package com.weizi.common.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.weizi.common.domain.dto.RoleDTO;
 import com.weizi.common.domain.dto.pageParam.RoleParamDTO;
-import com.weizi.common.domain.entity.UmsRoleEntity;
 import com.weizi.common.domain.vo.list.RoleVO;
 import com.weizi.common.response.WeiZiPageResult;
 import com.weizi.common.response.WeiZiResult;
 
-public interface IUmsRoleService extends IService<UmsRoleEntity> {
+public interface RoleService extends IService<RoleDTO> {
     WeiZiPageResult<RoleVO> selectList(RoleParamDTO adminParamDto);
 
-    UmsRoleEntity searchRoleById(Long adminId);
+    WeiZiResult saveRole(RoleDTO roleDTO);
 
-    WeiZiResult saveRole(UmsRoleEntity umsRoleEntity);
-
-    WeiZiResult updateRole(UmsRoleEntity umsRoleEntity);
+    WeiZiResult updateRole(RoleDTO roleDTO);
 
     WeiZiResult deleteByRoleId(Long adminId);
+
+    RoleDTO searchRoleById(Long roleId);
 }

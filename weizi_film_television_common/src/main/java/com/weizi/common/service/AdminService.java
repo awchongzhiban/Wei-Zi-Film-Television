@@ -1,14 +1,18 @@
 package com.weizi.common.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.weizi.common.domain.dto.dataParam.AdminDTO;
+import com.weizi.common.domain.dto.AdminDTO;
+import com.weizi.common.domain.po.AdminPO;
 import com.weizi.common.domain.vo.list.AdminVO;
 import com.weizi.common.domain.dto.pageParam.AdminParamDTO;
 import com.weizi.common.domain.vo.AdminInfoVO;
+import com.weizi.common.domain.vo.list.RoleTagVO;
 import com.weizi.common.response.WeiZiPageResult;
 import com.weizi.common.response.WeiZiResult;
 
-public interface IUmsAdminService extends IService<AdminDTO> {
+import java.util.List;
+
+public interface AdminService extends IService<AdminPO> {
     AdminInfoVO searchAdminInfo();
 
     WeiZiPageResult<AdminVO> selectList(AdminParamDTO adminParamDto);
@@ -22,4 +26,6 @@ public interface IUmsAdminService extends IService<AdminDTO> {
     WeiZiResult deleteByAdminId(Long adminId);
 
     boolean updateAdminAvatar(String imageFileName, Long adminId);
+
+    List<RoleTagVO> getRoleTagList();
 }

@@ -16,7 +16,6 @@ public class AdminVO implements Serializable {
     private Boolean sex;
     private String avatar;
     private Boolean status;
-    private String remark;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime;
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")

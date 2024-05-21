@@ -3,17 +3,20 @@ package com.weizi.common.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.weizi.common.domain.dto.dataParam.AdminDTO;
+import com.weizi.common.domain.dto.AdminDTO;
+import com.weizi.common.domain.po.AdminPO;
 import com.weizi.common.domain.vo.list.AdminVO;
+import com.weizi.common.domain.vo.list.RoleTagVO;
 import com.weizi.common.utils.imageutils.ImageUtils;
 import com.weizi.common.constants.HttpStatus;
 import com.weizi.common.domain.dto.pageParam.AdminParamDTO;
 import com.weizi.common.domain.vo.AdminInfoVO;
 import com.weizi.common.exception.ServiceException;
-import com.weizi.common.mapper.UmsAdminMapper;
+import com.weizi.common.mapper.AdminMapper;
 import com.weizi.common.response.WeiZiPageResult;
 import com.weizi.common.response.WeiZiResult;
-import com.weizi.common.service.IUmsAdminService;
+import com.weizi.common.service.AdminService;
+import com.weizi.common.utils.redis.AdminTreeService;
 import com.weizi.common.utils.security.WeiZiSecurityUtil;
 
 import org.apache.commons.io.FilenameUtils;
@@ -25,30 +28,32 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
-public class UmsAdminServiceImpl extends ServiceImpl<UmsAdminMapper, AdminDTO> implements IUmsAdminService {
+public class AdminServiceImpl extends ServiceImpl<AdminMapper, AdminPO> implements AdminService {
 
     @Value("${item.avatar-path}")
     private String avatarPath;
 
-    private final UmsAdminMapper adminMapper;
+    private final AdminMapper adminMapper;
+    private final AdminTreeService adminTreeService;
     private final ImageUtils imageUtils;
     BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
-    public UmsAdminServiceImpl(UmsAdminMapper adminMapper, ImageUtils imageUtils) {
+    public AdminServiceImpl(AdminMapper adminMapper, AdminTreeService adminTreeService, ImageUtils imageUtils) {
         this.adminMapper = adminMapper;
+        this.adminTreeService = adminTreeService;
         this.imageUtils = imageUtils;
     }
     @Override
     public AdminInfoVO searchAdminInfo() {
         // 获取用户id
         Long adminId = WeiZiSecurityUtil.getAdminId();
-        AdminDTO umsAdmin = adminMapper.selectById(adminId);
-        if(ObjectUtil.isNull(umsAdmin)) {
+        AdminPO adminPO = adminMapper.selectById(adminId);
+        if(ObjectUtil.isNull(adminPO)) {
             throw new ServiceException(HttpStatus.FORBIDDEN,"");
         }
 
         AdminInfoVO adminInfoVO = new AdminInfoVO();
-        BeanUtil.copyProperties(umsAdmin,adminInfoVO);
+        BeanUtil.copyProperties(adminPO,adminInfoVO);
         Optional.ofNullable(adminInfoVO.getAvatar()).ifPresent(avatar -> {
             String extension = FilenameUtils.getExtension(avatar);
             adminInfoVO.setAvatar("data:image/" + extension.toLowerCase() + ";base64," + imageUtils.encodeImageToBase64(avatarPath + avatar));
@@ -62,7 +67,7 @@ public class UmsAdminServiceImpl extends ServiceImpl<UmsAdminMapper, AdminDTO> i
         // 计算分页查询的偏移量
         Long pageNum = (adminParamDto.getPageNum() - 1) * adminParamDto.getPageSize();
         // 执行分页查询
-        List<AdminVO> records = baseMapper.selectAdminPage(adminParamDto.getUsername(), adminParamDto.getNickname(), adminParamDto.getEmail(), adminParamDto.getMobile(), pageNum, adminParamDto.getPageSize());
+        List<AdminVO> records = baseMapper.selectAdminPage(WeiZiSecurityUtil.getAdminId(), adminParamDto.getUsername(), adminParamDto.getNickname(), adminParamDto.getEmail(), adminParamDto.getMobile(), pageNum, adminParamDto.getPageSize());
         // 对每个管理员实体的头像进行处理
         records.forEach(entity -> {
             if (ObjectUtil.isNull(entity.getAvatar()))
@@ -73,7 +78,7 @@ public class UmsAdminServiceImpl extends ServiceImpl<UmsAdminMapper, AdminDTO> i
             entity.setAvatar(imageUtils.encodeImageToBase64(avatarFilePath));
         });
         // 查询总记录数
-        int total = baseMapper.countTotal(adminParamDto.getUsername(), adminParamDto.getNickname(), adminParamDto.getEmail(), adminParamDto.getMobile());
+        int total = baseMapper.countTotal(WeiZiSecurityUtil.getAdminId(), adminParamDto.getUsername(), adminParamDto.getNickname(), adminParamDto.getEmail(), adminParamDto.getMobile());
         return new WeiZiPageResult<>(records, total);
     }
 
@@ -96,23 +101,32 @@ public class UmsAdminServiceImpl extends ServiceImpl<UmsAdminMapper, AdminDTO> i
     @Override
     public WeiZiResult saveAdmin(AdminDTO adminDTO) {
         adminDTO.setPassword(encoder.encode(adminDTO.getPassword()));
-        if (baseMapper.insert(adminDTO) > 0)
+        AdminPO adminPO = new AdminPO();
+        BeanUtil.copyProperties(adminDTO, adminPO);
+        if (baseMapper.insert(adminPO) > 0) {
+            adminTreeService.addAdmin(adminPO.getParentAdminId(), adminPO.getAdminId());
             return WeiZiResult.success();
+        }
         return WeiZiResult.error();
     }
 
     @Override
     public WeiZiResult updateAdmin(AdminDTO adminDTO) {
         adminDTO.setPassword(null);
-        if (baseMapper.updateById(adminDTO) > 0)
+
+        AdminPO adminPO = new AdminPO();
+        BeanUtil.copyProperties(adminDTO, adminPO);
+        if (baseMapper.updateById(adminPO) > 0)
             return WeiZiResult.success();
         return WeiZiResult.error();
     }
 
     @Override
     public WeiZiResult deleteByAdminId(Long adminId) {
-        if (baseMapper.deleteById(adminId) >= 0)
+        if (baseMapper.deleteById(adminId) >= 0) {
+            adminTreeService.deleteAdmin(adminId);
             return WeiZiResult.success();
+        }
         return WeiZiResult.error();
     }
 
@@ -120,4 +134,11 @@ public class UmsAdminServiceImpl extends ServiceImpl<UmsAdminMapper, AdminDTO> i
     public boolean updateAdminAvatar(String imageFileName, Long adminId) {
         return baseMapper.updateAdminAvatar(imageFileName, adminId) >= 0;
     }
+
+    @Override
+    public List<RoleTagVO> getRoleTagList() {
+        return baseMapper.getRoleTagList(WeiZiSecurityUtil.getRoleIdList());
+    }
+
+
 }

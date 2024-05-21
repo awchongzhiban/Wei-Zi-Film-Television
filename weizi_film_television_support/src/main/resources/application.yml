@@ -1,14 +1,14 @@
 spring:
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://192.168.31.5:3307/weizi_film_television?useUnicode=true&characterEncoding=utf-8
+    url: jdbc:mariadb://127.0.0.1:3307/weizi_film_television?useUnicode=true&characterEncoding=utf-8
     username: root
     password: root
   # 配置Redis
   data:
     redis:
       # 地址
-      host: 192.168.31.5
+      host: 127.0.0.1
       # 数据库索引
       database: 0
       # 端口号
@@ -25,6 +25,19 @@ spring:
           max-active: 8
           # 连接池最大阻塞等待时间（使用负值表示没有限制）
           max-wait: -1ms
+  servlet:
+    multipart:
+      enabled: true
+      # 不限制文件大小
+      max-file-size: -1
+      # 不限制请求体大小
+      max-request-size: -1
+      # 临时IO目录
+      # location: "${java.io.tmpdir}"
+      # 不延迟解析
+      resolve-lazily: false
+      # 超过1Mb，就IO到临时目录
+      # file-size-threshold: 5MB
 # 自定义上传文件大小
 file-upload:
   avatar:
@@ -46,3 +59,26 @@ item:
 #    org:
 #      springframework:
 #        security: DEBUG
+# 配置超级管理员的id
+superadmin:
+  id: 1
+app:
+  # 存储转码视频的文件夹
+  video-folder: "D:/XiaoBai/admin/ffmpegVideo/"
+  # 允许上传的视频格式
+  allowed-file-types: mp4,avi,wmv
+# 视频临时文件路径
+video:
+  temp-folder: "D:/XiaoBai/admin/video/temp/"
+  movie-folder: "D:/XiaoBai/admin/video/movie/"
+ffmpeg:
+  ffmpeg-exe: "D:/javaTool/ffmpeg-6.1.1-full_build/bin/ffmpeg.exe"
+  ffprobe-exe: "D:/javaTool/ffmpeg-6.1.1-full_build/bin/ffprobe.exe"
+# 自定义minio 参数配置
+minio:
+  endpoint: http://localhost:9000 # MinIO服务所在地址和端口号
+  access-key: ciKCR3sS0JQIsANqShAq # 访问的key
+  secret-key: KoXWbJ0oQ8pzvvSNMy29xRiWXFv99cWmYLCGR3Yd # 访问的秘钥
+  bucket-name: formal-file
+  bucket-name-slice: slice-file
+

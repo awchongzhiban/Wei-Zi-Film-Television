@@ -8,6 +8,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,6 +27,8 @@ import java.util.Collection;
 @Component
 @Slf4j
 public class JwtAuthticationFilter extends OncePerRequestFilter {
+    @Value("${superadmin.id}")
+    private Long superAdminId;
 
     private final JwtUtils jwtUtils;
 
@@ -61,7 +64,7 @@ public class JwtAuthticationFilter extends OncePerRequestFilter {
         // 获取请求的接口路径
         String requestUri = request.getRequestURI();
         log.info("requestUri===>{}",requestUri);
-        if (requestUri.startsWith("/admin/admin/info") || requestUri.startsWith("/admin/menu/self") || requestUri.startsWith("/admin/admin/logout")) return true;
+        if (requestUri.startsWith("/admin/admin/info") || requestUri.startsWith("/admin/menu/self") || requestUri.startsWith("/admin/admin/logout") || loginAdminVO.getId().equals(superAdminId)) return true;
         requestUri = convertPagePathToPermission(requestUri);
         // 遍历用户的权限信息，检查是否存在与请求路径匹配的权限
         for (GrantedAuthority authority : authorities) {

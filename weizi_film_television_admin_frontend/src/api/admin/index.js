@@ -26,6 +26,15 @@ export function searchAdminList(data) {
         params: data
     })
 }
+
+// 获取角色列表
+export function getRoleTagList() {
+    return request({
+        url: '/admin/admin/getRoleTagList',
+        method: "POST",
+    })
+}
+
 // 通过id查询菜单
 export function searchAdminById(adminId) {
     return request({

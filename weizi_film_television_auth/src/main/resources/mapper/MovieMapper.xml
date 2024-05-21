@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.weizi.common.mapper.MovieMapper">
+    <resultMap id="MovieResultMap" type="com.weizi.common.domain.po.MoviePO">
+        <id column="movie_id" property="movieId"/>
+        <result column="poster_url" property="posterUrl"/>
+        <result column="movie_name" property="movieName"/>
+        <result column="file_type" property="fileType"/>
+        <result column="is_merge" property="isMerge"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+    </resultMap>
+    <update id="updateMergeChunksByMovieId">
+        UPDATE movie
+        SET
+            is_merge = true
+        WHERE
+            movie_id = #{movieId}
+        AND admin_id = #{adminId}
+    </update>
+
+    <select id="selectByMovieMd5" resultMap="MovieResultMap">
+        SELECT
+            movie_id,
+            file_type,
+            is_merge,
+            poster_url,
+            movie_md5,
+            admin_id,
+            movie_shard_total,
+            create_time,
+            update_time
+        FROM
+            movie
+        WHERE
+            movie_md5 = #{movieMd5}
+    </select>
+</mapper>

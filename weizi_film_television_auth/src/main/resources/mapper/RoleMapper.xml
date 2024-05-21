@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.weizi.common.mapper.RoleMapper">
+    <select id="selectByAdminId" resultType="java.lang.Long">
+        select role_id from admin_to_role where admin_id = #{adminId}
+    </select>
+    <select id="selectRolePage" resultType="com.weizi.common.domain.vo.list.RoleVO">
+        WITH RECURSIVE subordinates AS (
+        -- 初始化部分: 选出根节点
+        SELECT *
+        FROM role
+        WHERE role_id IN
+        <foreach item="roleId" collection="roleIds" separator="," open="(" close=")">
+            #{roleId}
+        </foreach>
+        UNION ALL
+        -- 递归部分: 根据已找到的下级继续往下找
+        SELECT r.*
+        FROM role r
+        INNER JOIN subordinates s ON r.parent_role_id = s.role_id
+        )
+        SELECT
+        role_id,
+        role_label,
+        role_name,
+        sort,
+        status,
+        remark,
+        create_time,
+        update_time
+        FROM
+        subordinates
+        <where>
+            <if test="roleLabel != null and roleLabel != ''">
+                role_label like concat('%', #{roleLabel}, '%')
+            </if>
+            <if test="roleName != null and roleName != ''">
+                AND role_name like concat('%', #{roleName}, '%')
+            </if>
+        </where>
+        LIMIT #{pageNum}, #{pageSize}
+    </select>
+
+    <select id="countTotal" resultType="java.lang.Integer">
+        WITH RECURSIVE subordinates AS (
+        -- 初始化部分: 选出根节点
+        SELECT *
+        FROM role
+        WHERE role_id IN
+        <foreach item="roleId" collection="roleIds" separator="," open="(" close=")">
+            #{roleId}
+        </foreach>
+        UNION ALL
+        -- 递归部分: 根据已找到的下级继续往下找
+        SELECT r.*
+        FROM role r
+        INNER JOIN subordinates s ON r.parent_role_id = s.role_id
+        )
+        SELECT COUNT(*)
+        FROM
+        subordinates
+        <where>
+            <if test="roleLabel != null and roleLabel != ''">
+                role_label like concat('%', #{roleLabel}, '%')
+            </if>
+            <if test="roleName != null and roleName != ''">
+                AND role_name like concat('%', #{roleName}, '%')
+            </if>
+        </where>
+    </select>
+    <select id="findAllRoleIdAndParentId" resultType="com.weizi.common.domain.po.RoleTreeNode">
+        SELECT
+            role_id,
+            role_name,
+            parent_role_id
+        FROM
+            role
+    </select>
+
+       <resultMap id="roleWithMenuIdsMap" type="com.weizi.common.domain.dto.RoleDTO">
+       <id property="roleId" column="role_id"/>
+       <result property="roleLabel" column="role_label"/>
+       <result property="roleName" column="role_name"/>
+       <result property="sort" column="sort"/>
+       <result property="status" column="status"/>
+       <result property="remark" column="remark"/>
+       <result property="menuIdList" column="menu_ids" typeHandler="com.weizi.common.utils.IdsStringToListTypeHandler"/>
+   </resultMap>
+
+    <select id="searchRoleById" resultMap="roleWithMenuIdsMap">
+        SELECT r.*, IFNULL(GROUP_CONCAT(rm.menu_id), '') AS menu_ids
+        FROM role r
+                 LEFT JOIN role_to_menu rm ON r.role_id = rm.role_id
+        WHERE r.role_id = #{roleId}
+        GROUP BY r.role_id;
+    </select>
+
+
+
+    <update id="updateRole">
+        UPDATE role
+        <set>
+            <if test="roleLabel != null and roleLabel != ''">
+                role_label = #{roleLabel},
+            </if>
+            <if test="roleName != null and roleName != ''">
+                role_name = #{roleName},
+            </if>
+            <if test="sort != null">
+                sort = #{sort},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            remark = #{remark},
+        </set>
+        WHERE role_id = #{roleId}
+    </update>
+
+    <insert id="insertRoleToMenuIdList" parameterType="map">
+        INSERT INTO role_to_menu (role_id, menu_id)
+        VALUES
+        <foreach item="menuId" index="index" collection="menuIdList" separator=",">
+            (#{roleId}, #{menuId})
+        </foreach>
+    </insert>
+
+
+    <delete id="deleteRoleToMenuIdList">
+        delete from role_to_menu where role_id = #{roleId}
+    </delete>
+
+</mapper>

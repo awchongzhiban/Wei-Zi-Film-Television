@@ -28,7 +28,7 @@
         <el-form-item label="功能：">
           <el-button type="primary" @click="handleQuery">搜索</el-button>
           <el-button type="warning" @click="handleRest">重置</el-button>
-          <el-button v-if="showSave" type="primary" @click="handleAdd()">新增</el-button>
+          <el-button v-if="showSave" type="primary" @click="handleAdd(adminId)">新增</el-button>
         </el-form-item>
       </el-col>
     </el-row>
@@ -59,24 +59,24 @@
         </el-table-column>
         <el-table-column prop="status" label="状态" width="80">
           <template #default="{ row }">
-            <span v-if="!row.status" style="color: green">可用</span>
-            <span v-else style="color: red">不可用</span>
+            <el-tag v-if="!row.status" type="success">启用</el-tag>
+            <el-tag v-else type="danger">禁用</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="createTime" label="创建时间" width="200"/>
         <el-table-column prop="updateTime" label="修改时间" width="200"/>
-        <el-table-column prop="remark" label="备注" width="200" />
         <el-table-column v-if="showUpdate || showDelete" fixed="right" label="操作" width="200">
             <template #default="scope">
-                <el-button v-if="showUpdate" link type="success" size="small" @click="handleEdit(scope.row.adminId)">修改</el-button>
-                <el-button v-if="showDelete" link type="danger" size="small" @click="handleRemove(scope.row.adminId, scope.row.username)">删除</el-button>
+              <el-button v-if="showSave" link type="primary" size="small" @click="handleAdd(scope.row.adminId)">新增</el-button>
+              <el-button v-if="showUpdate" link type="success" size="small" @click="handleEdit(scope.row.adminId)">修改</el-button>
+              <el-button v-if="showDelete" link type="danger" size="small" @click="handleRemove(scope.row.adminId, scope.row.username)">删除</el-button>
             </template>
         </el-table-column>
     </el-table>
     <!-- 分页 -->
     <div class="pagination_container">
         <el-pagination v-model:current-page="queryForm.pageNum" v-model:page-size="queryForm.pageSize"
-            :page-sizes="[10, 20, 30, 40, 50]" layout="total, sizes, prev, pager, next, jumper" :total="total"
+            :page-sizes="[2, 10, 20, 30, 40, 50]" layout="total, sizes, prev, pager, next, jumper" :total="total"
             @size-change="handleSizeChange" @current-change="handleCurrentChange" />
     </div>
 
@@ -144,6 +144,27 @@
         </el-col>
       </el-row>
       <el-row>
+        <el-col :span="24">
+          <el-form-item label="角色" prop="selectedRoles">
+            <el-select
+                v-model="selectedRoles"
+                multiple
+                collapse-tags
+                collapse-tags-tooltip
+                :max-collapse-tags="3"
+                placeholder="请选择角色"
+            >
+              <el-option
+                  v-for="item in roles"
+                  :key="item.roleId"
+                  :label="item.roleName"
+                  :value="item.roleId"
+              />
+            </el-select>
+          </el-form-item>
+        </el-col>
+      </el-row>
+      <el-row>
         <el-col :span="12">
           <el-form-item label="性别" prop="sex">
             <el-switch
@@ -159,18 +180,11 @@
           <el-form-item label="状态" prop="status">
             <el-switch
                 v-model="form.status"
-                active-text="可用"
-                inactive-text="不可用"
+                active-text="启用"
+                inactive-text="禁用"
                 :active-value="false"
                 :inactive-value="true"
             />
-          </el-form-item>
-        </el-col>
-      </el-row>
-      <el-row>
-        <el-col :span="24">
-          <el-form-item label="备注" prop="remark">
-            <el-input v-model="form.remark" placeholder="请输入备注"/>
           </el-form-item>
         </el-col>
       </el-row>
@@ -189,7 +203,7 @@
 <script setup>
 import {onMounted, ref} from 'vue'
 // 导入接口
-import {removeAdmin, saveAdmin, searchAdminById, searchAdminList, updateAdmin, uploadAvatar} from '@/api/admin/index.js'
+import {removeAdmin, saveAdmin, searchAdminById, searchAdminList, getRoleTagList, updateAdmin, uploadAvatar} from '@/api/admin/index.js'
 import {useAdminStore} from "@/stores/admin.js";
 import {useMenuStore} from "@/stores/menu.js";
 import { storeToRefs } from 'pinia';
@@ -211,6 +225,8 @@ let total = ref(0)
 let adminFormShow = ref(false);
 let isEditMode = ref(false);
 let adminTitle = ref("");
+let roles = ref([]); // 存储从接口获取的角色列表
+let selectedRoles = ref([]); // 存储选中的角色ID列表
 
 let queryForm = ref({
     username: undefined,
@@ -231,10 +247,11 @@ const initialFormValue = {
   confirmPassword: undefined,
   email: undefined,
   mobile: undefined,
+  roleIdList: [],
   sex: false,
   sort: 0,
   status: false,
-  remark: undefined,
+  parentAdminId: undefined,
 };
 
 // 新增和修改数据时的表单数据
@@ -267,9 +284,6 @@ let rules = ref({
   status: [
     { type: 'boolean', message: '请选择状态', trigger: 'change' }
   ],
-  remark: [
-    { max: 100, message: '备注不能超过100个字符', trigger: 'blur' }
-  ]
 });
 
 function validatePassword(rule, value, callback) {
@@ -295,12 +309,11 @@ let defaultAvatar = "/defaultimg/default_avatar.png";
 let adminList = ref([])
 onMounted(() => {
     handleSearchAdminList();
+    handleSearchRoleTagList();
     showUploadAvatar.value = buttonPermissions.value.includes('admin:admin:uploadAvatar');
     showSave.value = buttonPermissions.value.includes('admin:admin:save');
     showUpdate.value = buttonPermissions.value.includes('admin:admin:update');
     showDelete.value = buttonPermissions.value.includes('admin:admin:delete');
-  console.log("permissionButtonList: ",buttonPermissions.value)
-  console.log("showSave.value: ",showSave.value);
 })
 
 function getAvatarUrl(base64String) {
@@ -324,6 +337,15 @@ function handleSearchAdminList() {
     }
   })
 }
+
+function handleSearchRoleTagList() {
+  getRoleTagList().then(res => {
+    if (res.data.code === 200) {
+      roles.value = res.data.data;
+    }
+  })
+}
+
 // 重置
 function handleRest() {
   queryForm.value.pageNum = 1;
@@ -426,8 +448,11 @@ function handleSubmit() {
 }
 
 // 新增按钮，弹出表单
-function handleAdd() {
+function handleAdd(adminId) {
+  // 如果不存在管理员id就直接返回
+  if (!adminId) return;
   isEditMode.value = false;
+  form.value.parentAdminId = adminId;
   adminFormShow.value = true;
   adminTitle.value = "新增管理员";
 }

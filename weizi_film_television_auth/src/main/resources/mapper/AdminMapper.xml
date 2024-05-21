@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.weizi.common.mapper.UmsAdminMapper">
-    <resultMap id="UmsAdminResultMap" type="com.weizi.common.domain.entity.UmsAdminEntity">
+<mapper namespace="com.weizi.common.mapper.AdminMapper">
+    <resultMap id="AdminResultMap" type="com.weizi.common.domain.po.AdminPO">
         <id column="admin_id" property="adminId"/>
         <result column="username" property="username"/>
         <result column="nickname" property="nickname"/>
@@ -14,13 +14,11 @@
         <result column="status" property="status"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
-        <result column="remark" property="remark"/>
-        <result column="deleted" property="deleted"/>
-        <collection property="roleList" javaType="list" resultMap="UmsRoleResult"/>
+        <collection property="roleList" javaType="list" resultMap="RoleResult"/>
     </resultMap>
 
     <!--    配置角色映射-->
-    <resultMap id="UmsRoleResult" type="com.weizi.common.domain.entity.UmsRoleEntity">
+    <resultMap id="RoleResult" type="com.weizi.common.domain.po.RolePO">
         <id column="role_id" property="roleId"/>
         <result column="role_label" property="roleLabel"/>
         <result column="role_name" property="roleName"/>
@@ -28,8 +26,6 @@
         <result column="status" property="status"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
-        <result column="remark" property="remark"/>
-        <result column="deleted" property="deleted"/>
     </resultMap>
     <update id="updateAdminAvatar">
         UPDATE admin
@@ -37,15 +33,15 @@
         WHERE admin_id = #{adminId}
     </update>
 
-    <select id="selectAdminByUserName" resultMap="UmsAdminResultMap">
+    <select id="selectAdminByUserName" resultMap="AdminResultMap">
         select
         a.admin_id,a.username,a.nickname,a.email,a.mobile,a.sex,a.avatar,a.password,
-        a.status,a.create_time,a.update_time,a.remark,
+        a.status,a.create_time,a.update_time,
         r.role_id,r.role_label,r.role_name,r.sort
         from admin a
         left join admin_to_role atr on a.admin_id = atr.admin_id left join role r on r.role_id = atr.role_id
         <where>
-            a.deleted = 0 and r.deleted = 0 and
+            r.status = 0 and
             <if test="accountType == 0">
                 a.username = #{account}
             </if>
@@ -59,23 +55,33 @@
 
     </select>
     <select id="selectAdminPage" resultType="com.weizi.common.domain.vo.list.AdminVO">
-        SELECT
-            admin_id,
-            username,
-            nickname,
-            email,
-            mobile,
-            sex,
-            avatar,
-            status,
-            remark,
-            create_time,
-            update_time
+        WITH RECURSIVE subordinates AS (
+        -- 初始化部分: 选出根节点
+        SELECT *
         FROM admin
+        WHERE admin_id = #{adminId}
+        UNION ALL
+        -- 递归部分: 根据已找到的下级继续往下找
+        SELECT a.*
+        FROM admin a
+        INNER JOIN subordinates s ON a.parent_admin_id = s.admin_id
+        )
+        SELECT
+        admin_id,
+        username,
+        nickname,
+        email,
+        mobile,
+        sex,
+        avatar,
+        status,
+        create_time,
+        update_time
+        FROM
+        subordinates
         <where>
-            deleted = 0
             <if test="username != null and username != ''">
-                AND username like concat('%', #{username}, '%')
+                username like concat('%', #{username}, '%')
             </if>
             <if test="nickname != null and nickname != ''">
                 AND nickname like concat('%', #{nickname}, '%')
@@ -87,15 +93,28 @@
                 AND mobile like concat('%', #{mobile}, '%')
             </if>
         </where>
+        ORDER BY create_time DESC
         LIMIT #{pageNum}, #{pageSize}
     </select>
+
     <select id="countTotal" resultType="java.lang.Integer">
-        SELECT count(*)
+        WITH RECURSIVE subordinates AS (
+        -- 初始化部分: 选出根节点
+        SELECT *
         FROM admin
+        WHERE admin_id = #{adminId}
+        UNION ALL
+        -- 递归部分: 根据已找到的下级继续往下找
+        SELECT a.*
+        FROM admin a
+        INNER JOIN subordinates s ON a.parent_admin_id = s.admin_id
+        )
+        SELECT COUNT(*)
+        FROM
+        subordinates
         <where>
-            deleted = 0
             <if test="username != null and username != ''">
-                AND username like concat('%', #{username}, '%')
+                username like concat('%', #{username}, '%')
             </if>
             <if test="nickname != null and nickname != ''">
                 AND nickname like concat('%', #{nickname}, '%')
@@ -108,6 +127,30 @@
             </if>
         </where>
     </select>
+
+    <select id="getRoleTagList" resultType="com.weizi.common.domain.vo.list.RoleTagVO">
+        WITH RECURSIVE subordinates AS (
+        -- 初始化部分: 选出根节点
+        SELECT *
+        FROM role
+        WHERE role_id IN
+        <foreach item="roleId" collection="roleIds" separator="," open="(" close=")">
+            #{roleId}
+        </foreach>
+        UNION ALL
+        -- 递归部分: 根据已找到的下级继续往下找
+        SELECT r.*
+        FROM role r
+        INNER JOIN subordinates s ON r.parent_role_id = s.role_id
+        )
+        SELECT
+        role_id,
+        role_name
+        FROM
+        subordinates
+        ORDER BY sort
+    </select>
+
     <select id="searchAdminById" resultType="com.weizi.common.domain.vo.list.AdminVO">
         SELECT
             admin_id,
@@ -118,13 +161,15 @@
             sex,
             avatar,
             status,
-            remark,
             create_time,
             update_time
         FROM admin
-        <where>
-            admin_id = #{adminId}
-            AND deleted = 0
-        </where>
+        where admin_id = #{adminId}
+    </select>
+    <select id="findAllAdminIdAndParentId" resultType="com.weizi.common.domain.po.AdminTreeNode">
+        SELECT
+            admin_id,
+            parent_admin_id
+        FROM admin
     </select>
 </mapper>

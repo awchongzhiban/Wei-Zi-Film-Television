@@ -10,6 +10,7 @@ export const useMenuStore = defineStore('menu', {
         routerList: [], // 动态路由数据，也就是左侧菜单的路由信息
         breadcrumbList: [],
         buttonPermissions: [], // 页面按钮权限 以router作为key
+        currentRoute: '',
     }),
     // 获取数据的方法
     getters: {
@@ -17,6 +18,7 @@ export const useMenuStore = defineStore('menu', {
         Array: (state) => state.routerList,
         Array: (state) => state.breadcrumbList,
         Array: (state) => state.buttonPermissions,
+        String: state => state.currentRoute,
     },
 
     // 修改数据方法
@@ -27,6 +29,20 @@ export const useMenuStore = defineStore('menu', {
         // 渲染动态路由数据结构，存储到pinia中，不需要每次都去渲染数据结构了
         // data就是查询出来的用户菜单
         setRouterList(data) {
+            // 硬编码的“首页”路由信息
+            const hardcodedHomeRoute = {
+                name: '首页',
+                path: '/admin-index',
+                meta: {
+                    title: '首页',
+                    parentId: 0,
+                },
+                component: () => import(/*@vite-ignore */`../views/admin-index.vue`),
+            };
+
+            // 先将“首页”路由添加到routerList
+            this.routerList.push(hardcodedHomeRoute);
+
             data.forEach(item => {
                 // 如果 children 的 menuType 是 "BUTTON"，则不处理
                 if (item.menuType === 'BUTTON' || !item.path) {
@@ -36,7 +52,10 @@ export const useMenuStore = defineStore('menu', {
                 let routerInfo = {
                     name: item.menuName,
                     path: item.path,
-                    meta: {title: item.menuName},
+                    meta: {
+                        title: item.menuName,
+                        parentId: item.parentId,
+                    },
                     // 设置组件，
                     component: () => import(/*@vite-ignore */`../views${item.path}.vue`)
                     // component: modules[`../views/${item.path}.vue`]
@@ -52,7 +71,10 @@ export const useMenuStore = defineStore('menu', {
                     let routerInfo = {
                         name: children.menuName,
                         path: children.path,
-                        meta: {title: children.menuName},
+                        meta: {
+                            title: children.menuName,
+                            parentId: children.parentId,
+                        },
                         // 设置组件，
                         component: () => import(/*@vite-ignore */`../views${children.path}.vue`)
                         // component: modules[`../views/${children.path}.vue`]
@@ -67,6 +89,7 @@ export const useMenuStore = defineStore('menu', {
                 // 查询用户的菜单
                 searchSelfRouter().then(res => {
                     if(res.data.code == 200) {
+                        this.setMenuList(res.data.data);
                         this.setRouterList(res.data.data);
                         resolve()
                     }
@@ -93,11 +116,11 @@ export const useMenuStore = defineStore('menu', {
                     }
                 });
             };
-
             processMenu(data);
-
-            console.log("Button Permissions: ", buttonPermissions);
             this.buttonPermissions = buttonPermissions;
+        },
+        setCurrentRoute(data) {
+            this.currentRoute = data;
         },
     },
     /*为什么使用持久化就不行了，原因是因为只进行了判断是否有数据，并没有判断router里面是否有被addRouter过，
