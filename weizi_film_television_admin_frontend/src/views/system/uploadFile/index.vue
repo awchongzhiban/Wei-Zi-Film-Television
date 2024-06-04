@@ -10,6 +10,11 @@
       <template #trigger>
         <el-button type="primary">选择文件</el-button>
       </template>
+      <template #tip>
+        <div class="el-upload__tip">
+          仅支持上传mp4/mkv文件
+        </div>
+      </template>
 
       <el-button style="margin-left: 1rem;" type="success" @click="submitUpload">确认上传</el-button>
     </el-upload>
@@ -25,15 +30,15 @@
         <el-progress v-if="row.md5 === null && row.status === 'processing'" :percentage="30" :indeterminate="true">计算md5中...</el-progress>
       </template>
     </el-table-column>
-    <el-table-column v-if="row.status !== 'pending'" label="操作" fixed="right" width="180">
+    <el-table-column label="操作" fixed="right">
       <template #default="{ row }">
-        <el-button v-if="row.status === 'uploading' || row.status === 'ready'" @click="handlePpauseUpload(row)">
+        <el-button v-if="row.status === 'uploading' || row.status === 'ready'" @click="handlePauseUpload(row)">
           暂停
         </el-button>
         <el-button v-if="row.status === 'paused'" @click="handleResumeUpload(row)">
           继续
         </el-button>
-        <el-button v-if="row.status !== 'pending'" type="danger" @click="handleRemoveUpload(row)">
+        <el-button type="danger" @click="handleRemoveUpload(row)">
           删除
         </el-button>
       </template>
@@ -43,32 +48,32 @@
 
 <script setup>
 import {breakpointUpload, removeFile, verifyFileNameAndTypeAndGetFileId} from '@/api/uploadFile/index.js';
-import {reactive, ref} from 'vue';
+import {ref} from 'vue';
 import SparkMD5 from 'spark-md5';
 
 let globalCounter = ref(0); // 全局计数变量，从0开始
-const fileDataList = ref([]);
+const fileDataList = ref([]); // 用于存储文件数据
 
-let queryFileInfo = reactive({
-  fileName: null,
-  fileType: null,
-  fileSize: null,
-  movieMd5: null,
-  movieShardTotal: 0,
-});
 let uploadQueue = ref([]); // 用于存储待上传的文件数据
-const isUploading = ref(false);
+const isUploading = ref(false); // 是否正在上传中
 
+// 文件选择
 function handleFileChange(file) {
   if (!file || !file.raw) {
     console.error('未接收到有效的文件');
     return;
   }
+  let status = 'pending';
+  // 获取文件扩展名
+  const fileExtension = file.name.split('.').pop().toLowerCase();
+  // 验证文件类型
+  if (fileExtension !== 'mp4' && fileExtension !== 'mkv') status = 'fileTypeError';
+
   fileDataList.value.push({
     id: globalCounter.value,
     file: file.raw,
     name: file.name,
-    status: 'pending',
+    status: status,
     progress: 0,
     isUpload: false,
     isExist: false,
@@ -78,27 +83,25 @@ function handleFileChange(file) {
   globalCounter.value++
 }
 
+// 确认上传
 async function submitUpload() {
   await Promise.all(fileDataList.value.map(async (fileData) => {
     if (fileData.status === 'pending') {
       await processFile(fileData);
     }
   }));
-  console.log('所有文件处理完成');
 }
 
+// 处理文件
 async function processFile(fileData) {
   if (fileData.status === 'pending') {
     fileData.status = 'processing';
     try {
       fileData.md5 = await calculateFileMD5(fileData.file);
-      console.log(`md5 ${fileData.name}: `, fileData.md5);
       fileData.status = 'ready';
       handleFileSuccess(fileData.file.name);
-
       // 将文件数据直接加入到上传队列并开始上传
       uploadQueue.value.push(fileData);
-      console.log("startUploadProcess: ",fileData.name)
       startUploadProcess(); // 增加这一行，处理成功后立即开始上传
     } catch (error) {
       fileData.status = 'error';
@@ -107,7 +110,7 @@ async function processFile(fileData) {
   }
 }
 
-
+// 启动上传队列
 async function startUploadProcess() {
   if (uploadQueue.value.length === 0 || isUploading.value) return; // 如果队列为空或正在上传则不执行
   isUploading.value = true;
@@ -123,6 +126,7 @@ async function startUploadProcess() {
   isUploading.value = false;
 }
 
+// 逐个上传文件
 async function uploadFileSequentially(fileData) {
   try {
     const fileSize = fileData.file.size;
@@ -130,14 +134,14 @@ async function uploadFileSequentially(fileData) {
     const shardTotal = Math.ceil(fileSize / shardSize); // 切片后的总量
     fileData.status = 'uploading';
     const fileName = fileData.file.name;
-    queryFileInfo.value = {
+    let queryFileInfo = {
       fileName: fileName,
       fileType: fileName.slice((fileName.lastIndexOf(".") - 1 >>> 0) + 2) || '',
       fileSize: fileSize,
       movieMd5: fileData.md5,
       movieShardTotal: shardTotal,
     };
-    const response = await verifyFileNameAndTypeAndGetFileId(queryFileInfo.value);
+    const response = await verifyFileNameAndTypeAndGetFileId(queryFileInfo);
     if (response.data.code !== 200) {
       throw new Error(response.data.message);
     }
@@ -166,6 +170,7 @@ async function uploadFileSequentially(fileData) {
   }
 }
 
+// 成功处理
 function handleFileSuccess(fileName) {
   ElNotification({
     message: `${fileName} 准备上传`,
@@ -174,7 +179,7 @@ function handleFileSuccess(fileName) {
   });
 }
 
-
+// 错误处理
 function handleFileError(fileName, error) {
   ElNotification({
     message: `${fileName} ${error}`,
@@ -193,56 +198,43 @@ async function uploadShards(fileInfo) {
     if (fileInfo.isPaused) {
       const foundFileInfo = fileDataList.value.find(item => item.id === fileInfo.id);
       if (foundFileInfo) foundFileInfo.movieIndex = i;
-      break;
+      return;
     }
     const shardStart = i * shardSize;
     const shardEnd = Math.min((i + 1) * shardSize, fileSize);
     const shardFile = file.slice(shardStart, shardEnd);
 
     const data = new FormData();
-    data.append('movieId', fileInfo.movieId); // 假设fileInfo在外部定义
+    data.append('movieId', fileInfo.movieId);
     data.append('movieFile', shardFile);
     data.append('shardIndex', i);
     data.append('movieMd5', fileInfo.md5);
     try {
-      await breakpointUpload(data).then(res => {
-        if (res.data.code !== 200) {
-          ElNotification({
-            message: res.data.msg || '',
-            type: 'error',
-          });
-          break;
-        }
-      }).catch(error => {
-        ElNotification({
-          message: error || '',
-          type: 'error',
-        });
-        break;
-      });
-      updateProgress(fileInfo, i, shardTotal);
-      if (i === shardTotal - 1) {
-        ElNotification({
-          message: '上传成功',
-          type: 'success',
-        });
-        isUploading.value = false;
-        console.log(`文件${fileInfo.file.name}上传成功`);
-        fileInfo.status = 'uploadSuccess';
-        break; // 最后一个分片
+      const res = await breakpointUpload(data);
+      if (res.data.code !== 200) {
+        ElNotification({ message: res.data.msg || '', type: 'error' });
+        break; // 直接跳出循环
       }
     } catch (error) {
-      console.error(`Upload shard ${i} failed:`, error);
-      break; // 处理错误或中断上传
+      ElNotification({ message: error || '', type: 'error' });
+      break; // 出现错误也直接跳出循环
+    } finally {
+      updateProgress(fileInfo, i, shardTotal);
+      if (i === shardTotal - 1) {
+        ElNotification({ message: `文件${fileInfo.file.name}上传成功`, type: 'success' });
+        isUploading.value = false;
+        fileInfo.status = 'uploadSuccess';
+      }
     }
   }
 }
 
+// 计算文件MD5
 async function calculateFileMD5(file) {
   const blockSize = 1024 * 1024 * 5; // 每次读取5MB
   const spark = new SparkMD5.ArrayBuffer();
   const reader = new FileReader();
-
+  // 读取文件
   let blockStart = 0;
   while (blockStart < file.size) {
     const blockEnd = Math.min(blockStart + blockSize, file.size);
@@ -258,50 +250,59 @@ async function calculateFileMD5(file) {
 
     blockStart = blockEnd;
   }
-
   return spark.end();
 }
 
-function handlePpauseUpload(fileData) {
+// 暂停上传
+function handlePauseUpload(fileData) {
   fileData.isPaused = true;
   fileData.status = 'paused';
 }
 
+// 恢复上传
 function handleResumeUpload(fileData) {
   fileData.isPaused = false;
-  fileData.status = 'uploading';
+  console.log("isUploading.value: ",isUploading.value)
+  if (isUploading.value) {
+    fileData.status = 'ready';
+  } else {
+    fileData.status = 'uploading';
+    startUploadProcess();
+  }
   uploadQueue.value.push(fileData);
-  startUploadProcess();
 }
 
+// 移除上传
 function handleRemoveUpload(fileData) {
-  handlePpauseUpload(fileData);
-  let isDelete = false;
-  // 队列中清除
-  const index = uploadQueue.value.indexOf(fileData);
-  if (index !== -1) uploadQueue.value.splice(index, 1);
-  // 队列中找不到或存在且不是第一片就删除
-  if (index === -1 || fileData.movieIndex > 0) isDelete = true;
-  if (isDelete && fileData.md5) {
-    const data = new FormData();
-    data.append('movieMd5', fileData.md5);
-    removeFile(data).then(res => {
-      if(res.data.code !== 200) {
+  // 不为等待就走这里面，如果是等待中就直接移除数组就好了
+  if (fileData.status !== 'pending') {
+    handlePauseUpload(fileData);
+    let isDelete = false;
+    // 队列中清除
+    const index = uploadQueue.value.indexOf(fileData);
+    if (index !== -1) uploadQueue.value.splice(index, 1);
+    // 队列中找不到或存在且不是第一片就删除
+    if (index === -1 || fileData.movieIndex > 0) isDelete = true;
+    if (isDelete && fileData.md5) {
+      const data = new FormData();
+      data.append('movieMd5', fileData.md5);
+      removeFile(data).then(res => {
+        if(res.data.code !== 200) {
+          ElMessage({
+            message: `${fileData.name} 删除失败!`,
+            type: 'error',
+          });
+          return;
+        }
+      }).catch((error) => {
         ElMessage({
-          message: `${fileData.name} 删除失败!`,
+          message: error,
           type: 'error',
         });
         return;
-      }
-    }).catch((error) => {
-      ElMessage({
-        message: error,
-        type: 'error',
-      });
-      return;
-    })
+      })
+    }
   }
-
   fileDataList.value = fileDataList.value.filter(item => item.id !== fileData.id)
 }
 
@@ -316,6 +317,7 @@ function getTagType(status) {
       return 'success';
     case 'uploading':
       return 'warning';
+    case 'fileTypeError':
     case 'error':
     case 'uploaded':
     case 'uploadFailed':
@@ -344,6 +346,8 @@ function getStatusLabel(status) {
       return '上传成功';
     case 'uploaded':
       return '已存在';
+    case 'fileTypeError':
+      return '文件类型异常';
     default:
       return '等待中';
   }

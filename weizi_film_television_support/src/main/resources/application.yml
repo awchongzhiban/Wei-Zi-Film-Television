@@ -38,6 +38,11 @@ spring:
       resolve-lazily: false
       # 超过1Mb，就IO到临时目录
       # file-size-threshold: 5MB
+  web:
+    resources:
+      static-locations:
+        - classpath:/static/
+        - file:D:\\XiaoBai\\admin\\video\\sliceMovie
 # 自定义上传文件大小
 file-upload:
   avatar:
@@ -53,7 +58,9 @@ mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 item:
-  avatar-path: "D:/XiaoBai/admin/avatar/"
+  static-path: "src/main/resources/static" # 存储头像的静态目录下的文件夹（用于上传的时候用的）
+  avatar-path: "D:/XiaoBai/admin/avatar/" # 存储头像的路径写死
+  poster-path: "/images/poster/" # 存储海报的静态目录下的文件夹
 #logging:
 #  level:
 #    org:
@@ -65,15 +72,17 @@ superadmin:
 app:
   # 存储转码视频的文件夹
   video-folder: "D:/XiaoBai/admin/ffmpegVideo/"
-  # 允许上传的视频格式
-  allowed-file-types: mp4,avi,wmv
-# 视频临时文件路径
+  # 允许上传的视频格式（暂时先这两个格式）
+  allowed-file-types: mp4,mkv
+# 视频文件路径
 video:
   temp-folder: "D:/XiaoBai/admin/video/temp/"
+  slice-movie-folder: "D:/XiaoBai/admin/video/sliceMovie/"
   movie-folder: "D:/XiaoBai/admin/video/movie/"
 ffmpeg:
   ffmpeg-exe: "D:/javaTool/ffmpeg-6.1.1-full_build/bin/ffmpeg.exe"
   ffprobe-exe: "D:/javaTool/ffmpeg-6.1.1-full_build/bin/ffprobe.exe"
+  movie-slice-duration: 15 # 切片时长（s）
 # 自定义minio 参数配置
 minio:
   endpoint: http://localhost:9000 # MinIO服务所在地址和端口号
@@ -81,4 +90,7 @@ minio:
   secret-key: KoXWbJ0oQ8pzvvSNMy29xRiWXFv99cWmYLCGR3Yd # 访问的秘钥
   bucket-name: formal-file
   bucket-name-slice: slice-file
+  bucket-name-slice-moive: slice-movie-file
+sequential-file-processor:
+  max-threads: 1 # ffmpeg文件切片最大线程数
 

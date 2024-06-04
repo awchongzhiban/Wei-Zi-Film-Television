@@ -1,31 +1,22 @@
-package com.weizi.common.domain.po;
+package com.weizi.common.domain.vo.list;
 
-import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Data
-@TableName("movie")
-public class MoviePO implements Serializable {
-    @TableId(type = IdType.AUTO)
+public class MovieVO {
     private Long movieId;         // 影片ID
     private String movieName;      // 影片名称
-    private String fileType;       // 文件类型
     private String fileSize;       // 文件大小
     private Boolean isMerge;       // 是否已合并
     private Boolean isPlayer;      // 是否可播放
     private String posterUrl;      // 海报路径
     private String movieMd5;       // 影片MD5
-    private Long adminId;          // 管理员ID
-    private int movieShardTotal; // 影片碎片总数
-    @TableField(fill = FieldFill.INSERT)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createTime;
-    @TableField(fill = FieldFill.INSERT_UPDATE)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
 }

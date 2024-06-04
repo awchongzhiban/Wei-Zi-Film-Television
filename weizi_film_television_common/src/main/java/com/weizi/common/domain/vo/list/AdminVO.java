@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
-public class AdminVO implements Serializable {
+public class AdminVO {
     private Long adminId;
     private String username;
     private String nickname;

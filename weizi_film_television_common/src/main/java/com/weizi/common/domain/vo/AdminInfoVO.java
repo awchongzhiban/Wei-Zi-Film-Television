@@ -9,7 +9,7 @@ import java.io.Serializable;
  * @date 2024/02/12
  */
 @Data
-public class AdminInfoVO implements Serializable {
+public class AdminInfoVO {
 
     private Long adminId;
     private String nickname;

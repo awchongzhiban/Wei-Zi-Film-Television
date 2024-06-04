@@ -2,29 +2,84 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.weizi.common.mapper.MovieMapper">
-    <resultMap id="MovieResultMap" type="com.weizi.common.domain.po.MoviePO">
+    <resultMap id="MoviePOResultMap" type="com.weizi.common.domain.po.MoviePO">
         <id column="movie_id" property="movieId"/>
-        <result column="poster_url" property="posterUrl"/>
-        <result column="movie_name" property="movieName"/>
-        <result column="file_type" property="fileType"/>
-        <result column="is_merge" property="isMerge"/>
-        <result column="create_time" property="createTime"/>
-        <result column="update_time" property="updateTime"/>
+        <result property="movieName" column="movie_name"/>
+        <result property="fileType" column="file_type"/>
+        <result property="fileSize" column="file_size"/>
+        <result property="isMerge" column="is_merge"/>
+        <result property="isPlayer" column="is_player"/>
+        <result property="posterUrl" column="poster_url"/>
+        <result property="movieMd5" column="movie_md5"/>
+        <result property="adminId" column="admin_id"/>
+        <result property="movieShardTotal" column="movie_shard_total"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
     </resultMap>
+
+    <select id="countTotal" resultType="java.lang.Integer">
+        SELECT
+        COUNT(*)
+        FROM
+        movie
+        <where>
+            <if test="movieName != null and movieName != ''">
+                movie_name like concat('%', #{movieName}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="selectMoviePage" resultMap="MoviePOResultMap">
+        SELECT
+            movie_id,
+            movie_name,
+            file_type,
+            file_size,
+            is_merge,
+            is_player,
+            poster_url,
+            movie_md5,
+            admin_id,
+            movie_shard_total,
+            create_time,
+            update_time
+        FROM
+        movie
+        <where>
+            <if test="movieName != null and movieName != ''">
+                movie_name like concat('%', #{movieName}, '%')
+            </if>
+        </where>
+        ORDER BY create_time DESC
+        LIMIT #{pageNum}, #{pageSize}
+    </select>
+
     <update id="updateMergeChunksByMovieId">
         UPDATE movie
         SET
-            is_merge = true
+            is_merge = true,
+            update_time = now()
         WHERE
             movie_id = #{movieId}
         AND admin_id = #{adminId}
     </update>
+    <update id="updateIsPlayerByMovieMd5">
+        UPDATE movie
+        SET
+            is_player = true,
+            update_time = now()
+        WHERE
+            movie_md5 = #{movieMd5}
+    </update>
 
-    <select id="selectByMovieMd5" resultMap="MovieResultMap">
+    <select id="selectByMovieMd5" resultMap="MoviePOResultMap">
         SELECT
             movie_id,
+            movie_name,
             file_type,
+            file_size,
             is_merge,
+            is_player,
             poster_url,
             movie_md5,
             admin_id,

@@ -29,7 +29,9 @@
     </resultMap>
     <update id="updateAdminAvatar">
         UPDATE admin
-        SET avatar = #{imageFileName}
+        SET
+            avatar = #{imageFileName},
+            update_time = now()
         WHERE admin_id = #{adminId}
     </update>
 

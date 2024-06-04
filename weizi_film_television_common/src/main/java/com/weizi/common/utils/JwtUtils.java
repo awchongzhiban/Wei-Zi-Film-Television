@@ -74,26 +74,32 @@ public class JwtUtils {
         // 通过jwt加密过的
         String token = request.getHeader("Weizi-Authorization");
         if(StrUtil.isNotEmpty(token)) {
-            // 解析token
-            Claims claims = parseToken(token);
-            String parseToken = (String) claims.get("token");
-            String redisKey = CacheConstants.LOGIN_ADMIN_KEY + parseToken;
-            // 从redis中获取数据
-            LoginAdminVO loginAdminVO = redisCacheUtil.getCacheObject(redisKey);
-            if (ObjectUtil.isNull(loginAdminVO)) return null;
-            // 获取登录时间
-            long loginTime = loginAdminVO.getLoginTime();
-            // 获取当前时间
-            long currentTimeMillis = System.currentTimeMillis();
-            // 判断是否相差20分钟
-            long millis = currentTimeMillis / 1000 / 60 - loginTime/ 1000 / 60;
-            if(millis >= 20) {
-                refreshToken(loginAdminVO);
-            }
-            return loginAdminVO;
+            return getLoginAdminVOAndCheckToken(token);
         }
         return null;
     }
+
+    // 获取登录管理员的信息及验证token
+    public LoginAdminVO getLoginAdminVOAndCheckToken(String token) {
+        // 解析token
+        Claims claims = parseToken(token);
+        String parseToken = (String) claims.get("token");
+        String redisKey = CacheConstants.LOGIN_ADMIN_KEY + parseToken;
+        // 从redis中获取数据
+        LoginAdminVO loginAdminVO = redisCacheUtil.getCacheObject(redisKey);
+        if (ObjectUtil.isNull(loginAdminVO)) return null;
+        // 获取登录时间
+        long loginTime = loginAdminVO.getLoginTime();
+        // 获取当前时间
+        long currentTimeMillis = System.currentTimeMillis();
+        // 判断是否相差20分钟
+        long millis = currentTimeMillis / 1000 / 60 - loginTime/ 1000 / 60;
+        if(millis >= 20) {
+            refreshToken(loginAdminVO);
+        }
+        return loginAdminVO;
+    }
+
     // 刷新token
     private void refreshToken(LoginAdminVO loginAdminVO) {
         // 将用户数据缓存到redis中

@@ -10,7 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Set;
 
@@ -58,6 +61,37 @@ public class MinioUtils {
     }
 
     /**
+     * 文件上传/文件分块上传文件夹
+     *
+     * @param bucketName 桶名称
+     * @param objectName 对象名称
+     * @param file       文件
+     */
+    public Boolean uploadFileDir(String bucketName, String objectName, File file) {
+        try (FileInputStream fis = new FileInputStream(file)) {
+            String contentType = Files.probeContentType(file.toPath());
+            // 防止为空
+            if (contentType == null) {
+                log.warn("无法探测到文件的MIME类型，使用默认的'application/octet-stream'");
+                contentType = "application/octet-stream";
+            }
+            // 写入文件
+            minioClient.putObject(PutObjectArgs.builder()
+                    .bucket(bucketName)
+                    .object(objectName) // 这里的objectName是md5文件夹名称/index文件这种形式进来的，所以不用拼接了
+                    .stream(fis, file.length(), -1)
+                    .contentType(contentType)
+                    .build());
+            log.debug("上传到minio文件|uploadFile|参数：bucketName：{}，objectName：{}，contentType：{}"
+                    , bucketName, objectName, contentType);
+            return true;
+        } catch (Exception e) {
+            log.error("文件上传到Minio异常|参数：bucketName:{},objectName:{}|异常:{}", bucketName, objectName, e.getMessage());
+            return false;
+        }
+    }
+
+    /**
      * 创建桶，放文件使用
      *
      * @param bucketName 桶名称
@@ -70,7 +104,7 @@ public class MinioUtils {
             }
             return true;
         } catch (Exception e) {
-            log.error("Minio创建桶异常!|参数：bucketName:{}|异常:{}", bucketName, e);
+            log.error("Minio创建桶异常!|参数：bucketName:{}|异常:{}", bucketName, e.getMessage());
             return false;
         }
     }
@@ -94,7 +128,7 @@ public class MinioUtils {
             log.info("objectName1: {}",objectName);
             return true;
         } catch (Exception e) {
-            log.error("Minio文件按合并异常!|参数：bucketName:{},objectName:{}|异常:{}", bucketName, objectName, e);
+            log.error("Minio文件按合并异常!|参数：bucketName:{},objectName:{}|异常:{}", bucketName, objectName, e.getMessage());
             return false;
         }
     }
@@ -129,7 +163,7 @@ public class MinioUtils {
                     RemoveObjectArgs.builder().bucket(bucketName).object(objectName).build());
             return true;
         } catch (Exception e) {
-            log.error("Minio单个文件删除异常!|参数：bucketName:{},objectName:{}|异常:{}", bucketName, objectName, e);
+            log.error("Minio单个文件删除异常!|参数：bucketName:{},objectName:{}|异常:{}", bucketName, objectName, e.getMessage());
             return false;
         }
     }
@@ -141,13 +175,12 @@ public class MinioUtils {
      */
     public InputStream getFileStream(String bucketName, String objectName) {
         try {
-            InputStream stream = minioClient.getObject(GetObjectArgs.builder()
+            return minioClient.getObject(GetObjectArgs.builder()
                     .bucket(bucketName)
                     .object(objectName)
                     .build());
-            return stream;
         } catch (Exception e) {
-            log.error("Minio获取文件流异常!|参数：bucketName:{},objectName:{}|异常:{}", bucketName, objectName, e);
+            log.error("Minio获取文件流异常!|参数：bucketName:{},objectName:{}|异常:{}", bucketName, objectName, e.getMessage());
         }
         return null;
     }
@@ -169,7 +202,7 @@ public class MinioUtils {
             }
             return objectNames;
         } catch (Exception e) {
-            log.error("Minio获取文件流异常!|参数：bucketName:{},prefixObjectName:{}|异常:{}", bucketName, prefixObjectName, e);
+            log.error("Minio获取文件流异常!|参数：bucketName:{},prefixObjectName:{}|异常:{}", bucketName, prefixObjectName, e.getMessage());
         }
         return null;
     }

@@ -30,6 +30,9 @@ public class MinioConfig {
     @Value("${minio.bucket-name-slice}")
     private String bucketNameSlice;
 
+    @Value("${minio.bucket-name-slice-moive}")
+    private String bucketNameSliceMovie;
+
     @Bean
     public MinioClient minioClient() {
         return MinioClient.builder()

@@ -5,11 +5,15 @@ import com.weizi.common.constants.HttpStatus;
 import com.weizi.common.domain.po.RolePO;
 import com.weizi.common.domain.vo.LoginAdminVO;
 import com.weizi.common.exception.ServiceException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationContext;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -17,10 +21,15 @@ import java.util.stream.Collectors;
  * @date 2024/02/09
  * 获取登陆的用户信息
  */
+@Component
 public class WeiZiSecurityUtil {
-    @Value("${superadmin.id}")
     private static Long superAdminId;
 
+    @Autowired
+    public void setSuperAdminId(ApplicationContext context) {
+        // 使用ApplicationContext获取配置值
+        superAdminId = Long.parseLong(Objects.requireNonNull(context.getEnvironment().getProperty("superadmin.id")));
+    }
     /**
      * 获取  Authentication
      */

@@ -4,12 +4,13 @@ import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
 @TableName("movie_chunk")
-public class MovieChunkPO {
+public class MovieChunkPO implements Serializable {
     @TableId(type = IdType.AUTO)
     private Long movieChunkId; // 影片块ID
     private Long movieId;       // 影片ID

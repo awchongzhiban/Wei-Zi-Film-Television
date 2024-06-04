@@ -7,14 +7,17 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
-public class MovieDTO {
+public class MovieDTO implements Serializable {
     private Long movieId;         // 影片ID
     private String movieName;      // 影片名称
     private String fileType;       // 文件类型
+    private String fileSize;       // 文件大小
     private Boolean isMerge;       // 是否已合并
+    private Boolean isPlayer;      // 是否可播放
     private String posterUrl;      // 海报路径
     private String movieMd5;       // 影片MD5
     private Long adminId;          // 管理员ID

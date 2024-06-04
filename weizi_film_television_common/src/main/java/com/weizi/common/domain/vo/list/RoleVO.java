@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
-public class RoleVO implements Serializable {
+public class RoleVO {
     private Long roleId;
     private String roleLabel;
     private String roleName;

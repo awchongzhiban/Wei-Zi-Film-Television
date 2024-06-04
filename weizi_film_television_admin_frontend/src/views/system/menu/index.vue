@@ -227,7 +227,7 @@ let rules = ref({
       validator: (rule, value, callback) => {
         if (!value) {
           callback(new Error('请输入权限标识'));
-        } else if (/^(?!:)(?!.*::)[a-zA-Z:]+$/.test(value)) {
+        } else if (/^(?!:)(?!.*::)[a-zA-Z0-9:]+$/.test(value)) {
           callback();
         } else {
           callback(new Error('请输入合法的权限标识'));
@@ -235,7 +235,6 @@ let rules = ref({
       }
     }
   ],
-  // 其他表单项的验证规则
 });
 
 // 树形选择器

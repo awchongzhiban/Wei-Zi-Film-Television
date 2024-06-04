@@ -3,7 +3,7 @@ import request from '@/utils/request.js';
 
 export function verifyFileNameAndTypeAndGetFileId(data) {
     return request({
-        url: 'admin/upload/verifyFileNameAndTypeAndGetFileId',
+        url: 'admin/upload/uploadMovie/verifyFileNameAndTypeAndGetFileId',
         method: "POST",
         data: data
     })
@@ -11,7 +11,7 @@ export function verifyFileNameAndTypeAndGetFileId(data) {
 
 export function breakpointUpload(data) {
     return request({
-        url: 'admin/upload/breakpointUpload',
+        url: 'admin/upload/uploadMovie/breakpointUpload',
         method: "POST",
         data: data,
     })

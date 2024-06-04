@@ -11,7 +11,7 @@ import java.util.List;
  * @date 2024/02/09
  */
 @Data
-public class RouterVO implements Serializable {
+public class RouterVO {
 
     private Long menuId;
     private Long parentId;

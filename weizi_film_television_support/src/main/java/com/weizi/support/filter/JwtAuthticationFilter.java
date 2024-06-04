@@ -64,7 +64,13 @@ public class JwtAuthticationFilter extends OncePerRequestFilter {
         // 获取请求的接口路径
         String requestUri = request.getRequestURI();
         log.info("requestUri===>{}",requestUri);
-        if (requestUri.startsWith("/admin/admin/info") || requestUri.startsWith("/admin/menu/self") || requestUri.startsWith("/admin/admin/logout") || loginAdminVO.getId().equals(superAdminId)) return true;
+        if (requestUri.startsWith("/admin/admin/info")
+                || requestUri.startsWith("/admin/menu/self")
+                || requestUri.startsWith("/admin/admin/logout")
+                || loginAdminVO.getId().equals(superAdminId)
+                || requestUri.startsWith("/admin/movie/get/m3u8/")
+                || requestUri.startsWith("/admin/movie/get/ts/")
+        ) return true;
         requestUri = convertPagePathToPermission(requestUri);
         // 遍历用户的权限信息，检查是否存在与请求路径匹配的权限
         for (GrantedAuthority authority : authorities) {
@@ -76,7 +82,6 @@ public class JwtAuthticationFilter extends OncePerRequestFilter {
                 return true; // 用户具有调用当前接口的权限
             }
         }
-
         return false; // 用户没有调用当前接口的权限
     }
 

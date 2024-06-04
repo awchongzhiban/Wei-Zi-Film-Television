@@ -51,7 +51,9 @@ public class SecurityConfig {
         // 禁用csrf
         http.csrf(AbstractHttpConfigurer::disable);
         // 配置拦截策略
-        http.authorizeHttpRequests(auth -> auth.requestMatchers("/admin/auth/login").permitAll().anyRequest().authenticated());
+        http.authorizeHttpRequests(auth -> auth.requestMatchers("/admin/auth/login").permitAll()
+                .requestMatchers("/admin/movie/get/**").permitAll() // 这个路由是为了配合电影播放设置的，请求方面使用
+                .anyRequest().authenticated());
         // 开启form认证
         http.formLogin(Customizer.withDefaults());
         // 配置跨域
