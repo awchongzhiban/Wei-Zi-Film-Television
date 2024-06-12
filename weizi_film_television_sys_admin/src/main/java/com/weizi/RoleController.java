@@ -24,7 +24,7 @@ public class RoleController {
     }
 
     /**
-     * 获取管理员列表
+     * 获取角色列表
      */
     @GetMapping("list")
     public WeiZiResult selectList(RoleParamDTO roleParamDTO) {
@@ -33,7 +33,7 @@ public class RoleController {
     }
 
     /**
-     * 获取单个详情
+     * 获取单个角色详情
      */
     @GetMapping("getDetail")
     public WeiZiResult searchRoleById(@RequestParam("roleId") Long roleId) {
@@ -47,7 +47,7 @@ public class RoleController {
     }
 
     /**
-     * 保存菜单
+     * 保存角色
      */
     @PostMapping("save")
     public WeiZiResult save(@RequestBody RoleDTO roleDTO) {
@@ -57,7 +57,7 @@ public class RoleController {
     }
 
     /**
-     * 更新菜单
+     * 更新角色
      */
     @PostMapping("update")
     public WeiZiResult update(@RequestBody RoleDTO roleDTO) {
@@ -67,7 +67,7 @@ public class RoleController {
     }
 
     /**
-     * 删除菜单（二合一删除单个和多个都可以）
+     * 删除角色
      */
     @GetMapping("delete")
     public WeiZiResult delete(@RequestParam("roleId") Long roleId) {

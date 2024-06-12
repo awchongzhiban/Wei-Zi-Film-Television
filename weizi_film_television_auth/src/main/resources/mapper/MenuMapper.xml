@@ -4,7 +4,6 @@
 <mapper namespace="com.weizi.common.mapper.MenuMapper">
     <!--  根据roleId批量查询菜单  -->
     <select id="selectAdminByRoleIds" resultType="com.weizi.common.domain.po.MenuPO">
-
         select m.menu_id,m.parent_id,m.menu_name,m.sort,m.menu_type,m.path,m.component_path,m.perms,m.icon
         from menu m left join role_to_menu rtm on m.menu_id = rtm.menu_id
         where rtm.role_id in
@@ -12,6 +11,21 @@
             #{roleId}
         </foreach>
         and m.status = 0
+        or m.parent_id = 0
+    </select>
+
+    <select id="selectAllMenu" resultType="com.weizi.common.domain.po.MenuPO">
+         select
+            menu_id,
+            parent_id,
+            menu_name,
+            sort,
+            menu_type,
+            path,
+            component_path,
+            perms,
+            icon
+         from menu
     </select>
 
 <!--获取列表相关 Start-->
@@ -22,6 +36,7 @@
             #{parentId}
         </foreach>
     </select>
+
     <select id="selectMenuPage" resultType="com.weizi.common.domain.po.MenuPO">
         SELECT *
         FROM menu
@@ -49,7 +64,6 @@
         )
         SELECT * FROM MenuTree ORDER BY sort;
     </select>
-
 
     <select id="countTotal" resultType="java.lang.Integer">
         SELECT count(*)

@@ -10,12 +10,16 @@ import com.weizi.common.response.WeiZiResult;
 import com.weizi.common.service.RoleService;
 import com.weizi.common.utils.redis.RoleTreeService;
 import com.weizi.common.utils.security.WeiZiSecurityUtil;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
 public class RoleServiceImpl extends ServiceImpl<RoleMapper, RoleDTO> implements RoleService {
+    @Value("${superadmin.id}")
+    private Long SUPER_ADMIN_ROLE_ID;
 
     private final RoleTreeService roleTreeService;
 
@@ -27,10 +31,15 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, RoleDTO> implements
     public WeiZiPageResult<RoleVO> selectList(RoleParamDTO roleParamDto) {
         // 计算分页查询的偏移量
         Long pageNum = (roleParamDto.getPageNum() - 1) * roleParamDto.getPageSize();
-        // 执行分页查询
-        List<RoleVO> records = baseMapper.selectRolePage(WeiZiSecurityUtil.getRoleIdList(), roleParamDto.getRoleLabel(), roleParamDto.getRoleName(), pageNum, roleParamDto.getPageSize());
         // 查询总记录数
-        int total = baseMapper.countTotal(WeiZiSecurityUtil.getRoleIdList(), roleParamDto.getRoleLabel(), roleParamDto.getRoleName());
+        int total = baseMapper.countTotal(WeiZiSecurityUtil.getRoleIdList(), roleParamDto.getRoleLabel(), roleParamDto.getRoleName(), SUPER_ADMIN_ROLE_ID);
+        // 根据total决定是否执行分页查询
+        List<RoleVO> records;
+        if (total > 0) {
+            records = baseMapper.selectRolePage(WeiZiSecurityUtil.getRoleIdList(), roleParamDto.getRoleLabel(), roleParamDto.getRoleName(), pageNum, roleParamDto.getPageSize(), SUPER_ADMIN_ROLE_ID);
+        } else {
+            records = Collections.emptyList();
+        }
         return new WeiZiPageResult<>(records, total);
     }
 

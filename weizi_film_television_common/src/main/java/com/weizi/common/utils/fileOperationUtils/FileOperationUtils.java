@@ -183,10 +183,11 @@ public class FileOperationUtils {
         ProcessBuilder pb = new ProcessBuilder(
                 ffmpegExePath,
                 "-i", inputFile.getAbsolutePath(),
-                "-map", "0:v:0", // 保留第一个视频轨道
-                "-map", audioTrackOption, // 确保选择第一个音频轨道，即使有多个音轨
-                "-c:v", "copy", // 尝试复制视频流，如果不行则需要重新编码
-                "-c:a", "copy", // 尝试复制音频流，如果原始编码是支持的
+                "-map", "0:v:0",
+                "-map", audioTrackOption,
+                "-c:v", "libx264", // 需要重新编码以应用force_key_frames，因为'copy'不会改变视频流
+                "-c:a", "aac", // 如果原音频编码不支持直接复制，这里指定重新编码为AAC
+                "-force_key_frames", "expr:gte(t,n_forced*" + sliceDuration + ")", // 强制每秒开始的关键帧
                 "-hls_time", String.valueOf(sliceDuration),
                 "-hls_list_size", "0",
                 "-hls_segment_filename", outputDirectory.resolve("%d.ts").toString(),

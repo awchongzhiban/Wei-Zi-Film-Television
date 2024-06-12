@@ -22,12 +22,13 @@
   </el-form>
 
   <!-- 功能按钮 -->
-    <el-row :gutter="4">
+    <el-row :gutter="4" style="margin-bottom: 15px;">
         <el-col :span="6">
             <el-button type="primary" @click="handleAdd(0)">新增</el-button>
             <el-button type="danger" @click="handleRemove(0, null)">删除</el-button>
         </el-col>
     </el-row>
+
     <!-- 列表 -->
     <el-table :data="menuList" style="width: 100%" row-key="menuId" border default-expand-all @selection-change="handleSelectionChange">
         <el-table-column fixed type="selection" width="55" />
@@ -222,15 +223,12 @@ let rules = ref({
   ],
   perms: [
     {
-      required: true,
       trigger: 'blur',
       validator: (rule, value, callback) => {
-        if (!value) {
-          callback(new Error('请输入权限标识'));
-        } else if (/^(?!:)(?!.*::)[a-zA-Z0-9:]+$/.test(value)) {
-          callback();
-        } else {
+        if (value && !/^[a-zA-Z0-9]+(?:[:][a-zA-Z0-9]+)*(:)?$/.test(value)) {
           callback(new Error('请输入合法的权限标识'));
+        } else {
+          callback();
         }
       }
     }

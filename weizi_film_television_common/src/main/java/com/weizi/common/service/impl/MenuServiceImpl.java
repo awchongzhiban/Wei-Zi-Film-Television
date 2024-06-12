@@ -33,9 +33,14 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, MenuPO> implements 
      */
     @Override
     public List<RouterVO> searchSelfMenu() {
-        Long adminId = WeiZiSecurityUtil.getAdminId();
-        List<Long> roleIds = roleMapper.selectByAdminId(adminId);
-        List<MenuPO> menuList = baseMapper.selectAdminByRoleIds(roleIds);
+        List<MenuPO> menuList;
+        if (WeiZiSecurityUtil.isSuperAdmin()) {
+            menuList = baseMapper.selectAllMenu();
+        } else {
+            Long adminId = WeiZiSecurityUtil.getAdminId();
+            List<Long> roleIds = roleMapper.selectByAdminId(adminId);
+            menuList = baseMapper.selectAdminByRoleIds(roleIds);
+        }
         // 通过递归设置菜单的树形结构
         // 1、获取所有的1级菜单【parentId = 0】
         // 2、遍历1级菜单，获取他所有的子元素【其他数据的parentId = 当前元素的menuId】
@@ -135,6 +140,10 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, MenuPO> implements 
             List<RouterVO> childrenList = _buildTree(menuList, routerVO.getMenuId());
             routerVO.setChildren(childrenList);
         }
+        // 过滤掉没有子菜单的一级菜单
+        routerVOS = routerVOS.stream()
+                .filter(router -> router.getChildren() != null && !router.getChildren().isEmpty())
+                .collect(Collectors.toList());
         return routerVOS;
     }
 

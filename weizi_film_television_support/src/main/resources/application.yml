@@ -82,7 +82,7 @@ video:
 ffmpeg:
   ffmpeg-exe: "D:/javaTool/ffmpeg-6.1.1-full_build/bin/ffmpeg.exe"
   ffprobe-exe: "D:/javaTool/ffmpeg-6.1.1-full_build/bin/ffprobe.exe"
-  movie-slice-duration: 15 # 切片时长（s）
+  movie-slice-duration: 1 # 切片时长（s）
 # 自定义minio 参数配置
 minio:
   endpoint: http://localhost:9000 # MinIO服务所在地址和端口号

@@ -23,12 +23,13 @@ import java.util.stream.Collectors;
  */
 @Component
 public class WeiZiSecurityUtil {
-    private static Long superAdminId;
+    // 超级管理员角色ID
+    private static Long SUPER_ADMIN_ROLE_ID;
 
     @Autowired
     public void setSuperAdminId(ApplicationContext context) {
         // 使用ApplicationContext获取配置值
-        superAdminId = Long.parseLong(Objects.requireNonNull(context.getEnvironment().getProperty("superadmin.id")));
+        SUPER_ADMIN_ROLE_ID = Long.parseLong(Objects.requireNonNull(context.getEnvironment().getProperty("superadmin.id")));
     }
     /**
      * 获取  Authentication
@@ -75,7 +76,10 @@ public class WeiZiSecurityUtil {
     }
 
     public static boolean isSuperAdmin() {
-        return WeiZiSecurityUtil.getAdminId().equals(superAdminId);
+        if (WeiZiSecurityUtil.getRoleIdList() != null && !WeiZiSecurityUtil.getRoleIdList().isEmpty()) {
+            return WeiZiSecurityUtil.getRoleIdList().contains(SUPER_ADMIN_ROLE_ID);
+        }
+        return false;
     }
 
 }

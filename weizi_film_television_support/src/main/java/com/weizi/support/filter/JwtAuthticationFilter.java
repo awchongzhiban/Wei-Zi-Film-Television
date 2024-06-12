@@ -28,7 +28,7 @@ import java.util.Collection;
 @Slf4j
 public class JwtAuthticationFilter extends OncePerRequestFilter {
     @Value("${superadmin.id}")
-    private Long superAdminId;
+    private Long SUPER_ADMIN_ROLE_ID;
 
     private final JwtUtils jwtUtils;
 
@@ -67,7 +67,7 @@ public class JwtAuthticationFilter extends OncePerRequestFilter {
         if (requestUri.startsWith("/admin/admin/info")
                 || requestUri.startsWith("/admin/menu/self")
                 || requestUri.startsWith("/admin/admin/logout")
-                || loginAdminVO.getId().equals(superAdminId)
+                || loginAdminVO.getId().equals(SUPER_ADMIN_ROLE_ID)
                 || requestUri.startsWith("/admin/movie/get/m3u8/")
                 || requestUri.startsWith("/admin/movie/get/ts/")
         ) return true;

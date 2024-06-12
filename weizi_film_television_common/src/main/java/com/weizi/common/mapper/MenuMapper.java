@@ -12,6 +12,8 @@ public interface MenuMapper extends BaseMapperX<MenuPO> {
     List<MenuPO> selectAdminByRoleIds(@Param("roleIds") List<Long> roleIds);
     // 通过父级id组获取菜单
     List<MenuPO> selectMenusByParentIds(@Param("parentIds") List<Long> parentIds);
+    // 超级管理员直接获取菜单
+    List<MenuPO> selectAllMenu();
     // 获取菜单分页
     List<MenuPO> selectMenuPage(@Param("menuName") String menuName, @Param("perms") String perms, @Param("pageNum") Long pageNum, @Param("pageSize") Long pageSize);
     // 获取父级菜单总数

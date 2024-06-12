@@ -27,6 +27,7 @@
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
     </resultMap>
+
     <update id="updateAdminAvatar">
         UPDATE admin
         SET
@@ -54,8 +55,8 @@
                 a.email = #{account}
             </if>
         </where>
-
     </select>
+
     <select id="selectAdminPage" resultType="com.weizi.common.domain.vo.list.AdminVO">
         WITH RECURSIVE subordinates AS (
         -- 初始化部分: 选出根节点
@@ -153,6 +154,13 @@
         ORDER BY sort
     </select>
 
+    <select id="getAllRoleTagList" resultType="com.weizi.common.domain.vo.list.RoleTagVO">
+        SELECT
+            role_id,
+            role_name
+        FROM role
+    </select>
+
     <select id="searchAdminById" resultType="com.weizi.common.domain.vo.list.AdminVO">
         SELECT
             admin_id,
@@ -168,6 +176,7 @@
         FROM admin
         where admin_id = #{adminId}
     </select>
+
     <select id="findAllAdminIdAndParentId" resultType="com.weizi.common.domain.po.AdminTreeNode">
         SELECT
             admin_id,

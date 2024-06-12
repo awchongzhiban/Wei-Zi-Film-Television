@@ -85,6 +85,7 @@
         <el-col :span="12" style="max-height: 400px; overflow-y: auto;">
           <el-form-item label="权限选择">
             <el-tree
+                class="roleTree"
                 ref="permissionTreeRef"
                 :data="formattedMenuList"
                 :props="treeProps"
@@ -390,7 +391,7 @@ function expandAllNodes(nodes) {
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .pagination_container {
   position: relative;
   height: 40px;
@@ -402,4 +403,17 @@ function expandAllNodes(nodes) {
   position: absolute;
   right: 110px;
 }
+
+.roleTree {
+  /* 默认隐藏所有复选框 */
+  .el-tree-node__content .el-checkbox .el-checkbox__inner {
+    display: none;
+  }
+  /* 显示子节点（非第一级节点）的复选框 */
+  .el-tree-node__children .el-tree-node__content .el-checkbox .el-checkbox__inner {
+    display: inline-block;
+  }
+}
+
+
 </style>

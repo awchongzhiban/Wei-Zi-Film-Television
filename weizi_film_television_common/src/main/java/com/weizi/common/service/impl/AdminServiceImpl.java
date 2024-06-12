@@ -137,6 +137,7 @@ public class AdminServiceImpl extends ServiceImpl<AdminMapper, AdminPO> implemen
 
     @Override
     public List<RoleTagVO> getRoleTagList() {
+        if (WeiZiSecurityUtil.isSuperAdmin()) return baseMapper.getAllRoleTagList();
         return baseMapper.getRoleTagList(WeiZiSecurityUtil.getRoleIdList());
     }
 
