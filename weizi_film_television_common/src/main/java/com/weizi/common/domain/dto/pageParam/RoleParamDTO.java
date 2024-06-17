@@ -11,6 +11,4 @@ import lombok.Data;
 public class RoleParamDTO extends PageParam {
     private String roleLabel;
     private String roleName;
-    private String email;
-    private String mobile;
 }

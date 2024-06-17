@@ -18,7 +18,6 @@ public class AdminPO implements Serializable {
     private String nickname;
     private String email;
     private String mobile;
-    private Boolean sex;
     private String avatar;
     private String password;
     private Boolean status;

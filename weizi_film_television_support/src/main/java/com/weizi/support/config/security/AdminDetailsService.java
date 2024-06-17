@@ -34,28 +34,29 @@ public class AdminDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String account) throws UsernameNotFoundException {
         log.info("loadUserByUsername=======>{}",account);
-        // TODO 验证账号类型
-        int accountType = 0;
         // 根据账号查询用户，同时将角色查出来，联查最好别超过三张表
-        AdminPO adminPO = adminMapper.selectAdminByUserName(account, accountType);
+        AdminPO adminPO = adminMapper.selectAdminByUserName(account);
         log.info("adminPO===>{}", adminPO);
         // 权限查询是根据角色查询的，首先获取所有角色id
         if (ObjectUtil.isNotNull(adminPO)) {
             List<RolePO> roleList = adminPO.getRoleList();
-            // 取出ID
-            List<Long> roleIds = roleList.stream().map(RolePO::getRoleId).toList();
-            log.info("roleIds====>{}", roleIds);
-            List<MenuPO> menuList = menuMapper.selectAdminByRoleIds(roleIds);
-            // 查询所有菜单
-            List<String> perms = menuList.stream().map(MenuPO::getPerms).collect(Collectors.toList());
-            log.info("权限====>{}", perms);
-            adminPO.setPerms(perms);
+            // 如果角色不为空
+            if (ObjectUtil.isNotEmpty(roleList)) {
+                // 取出ID
+                List<Long> roleIds = roleList.stream().map(RolePO::getRoleId).toList();
+                log.info("roleIds====>{}", roleIds);
+                List<MenuPO> menuList = menuMapper.selectAdminByRoleIds(roleIds);
+                // 查询所有菜单
+                List<String> perms = menuList.stream().map(MenuPO::getPerms).collect(Collectors.toList());
+                log.info("权限====>{}", perms);
+                adminPO.setPerms(perms);
+            }
         }
         // 根据角色查询权限
         LoginAdminVO loginAdminVO = new LoginAdminVO();
         loginAdminVO.setAdminPO(adminPO);
         loginAdminVO.setId(adminPO.getAdminId());
-
+        log.warn("loginAdminVO====>{}", loginAdminVO);
         return loginAdminVO;
     }
 }

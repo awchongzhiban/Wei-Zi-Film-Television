@@ -77,7 +77,6 @@ export const adminMovieUpload = defineStore('adminMovieUpload', {
             // 暂停上传
             this.isPaused = false;
             const fileInfo = await this.verifyFile(formData);
-            console.log("fileInfo: ", fileInfo);
             if (!fileInfo || fileInfo.isUpload === false) {
                 ElNotification({
                     message: '文件已存在，请勿重复上传！',

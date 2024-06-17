@@ -24,10 +24,22 @@
     </el-row>
   </el-form>
   <!-- 列表 -->
-  <el-table :data="roleList" style="width: 100%" row-key="roleId" border default-expand-all @selection-change="handleSelectionChange">
+  <el-table :data="roleList"
+            style="width: 100%"
+            row-key="roleId"
+            border
+            default-expand-all
+            @selection-change="handleSelectionChange">
     <el-table-column fixed prop="roleLabel" label="角色标识" width="180" />
     <el-table-column prop="roleName" label="角色名称" width="180" />
-    <el-table-column prop="status" label="状态" width="80">
+    <el-table-column prop="status" label="状态" width="80"
+       :filters="[
+        { text: '启用', value: false },
+        { text: '禁用', value: true },
+      ]"
+       :filter-method="filterTag"
+       :filter-multiple="false"
+    >
       <template #default="{ row }">
         <el-tag v-if="!row.status" type="success">启用</el-tag>
         <el-tag v-else type="danger">禁用</el-tag>
@@ -35,11 +47,11 @@
     </el-table-column>
     <el-table-column prop="remark" label="备注" width="200" />
     <el-table-column prop="createTime" label="创建时间" width="200"/>
-    <el-table-column prop="updateTime" label="修改时间" width="200"/>
+    <el-table-column prop="updateTime" label="编辑时间" width="200"/>
     <el-table-column fixed="right" label="操作" width="200">
       <template #default="scope">
-        <el-button link type="success" size="small" @click="handleEdit(scope.row.roleId)">修改</el-button>
-        <el-button link type="danger" size="small" @click="handleRemove(scope.row.roleId, scope.row.roleName)">删除</el-button>
+        <el-button type="success" size="small" @click="handleEdit(scope.row.roleId)">编辑</el-button>
+        <el-button type="danger" size="small" @click="handleRemove(scope.row.roleId, scope.row.roleName)">删除</el-button>
       </template>
     </el-table-column>
   </el-table>
@@ -50,80 +62,74 @@
                    @size-change="handleSizeChange" @current-change="handleCurrentChange" />
   </div>
 
-  <!-- 新增和修改的弹窗 -->
-  <el-dialog v-model="roleFormShow" :title="roleTitle" width="80%" :before-close="handleClose">
+  <!-- 新增和编辑的弹窗 -->
+  <el-drawer v-model="roleFormShow" :title="roleTitle" size="40%" :before-close="handleClose">
     <!-- 表单 -->
     <el-form :model="form" :rules="rules" label-width="120px" ref="formRef">
 
-      <!-- 左侧表单内容 -->
-      <el-row :gutter="20">
-        <el-col :span="12">
-          <el-form-item label="角色标识" prop="roleLabel">
-            <el-input v-model="form.roleLabel" placeholder="请输入角色标识"/>
-          </el-form-item>
-
-          <el-form-item label="角色名称" prop="roleName">
-            <el-input v-model="form.roleName" placeholder="请输入角色名称"/>
-          </el-form-item>
-
-          <el-form-item label="状态" prop="status">
-            <el-switch
-                v-model="form.status"
-                active-text="启用"
-                inactive-text="禁用"
-                :active-value="false"
-                :inactive-value="true"
-            />
-          </el-form-item>
-
-          <el-form-item label="备注" prop="remark">
-            <el-input v-model="form.remark" placeholder="请输入备注"/>
-          </el-form-item>
-        </el-col>
-
-        <!-- 右侧权限选择树 -->
-        <el-col :span="12" style="max-height: 400px; overflow-y: auto;">
-          <el-form-item label="权限选择">
-            <el-tree
-                class="roleTree"
-                ref="permissionTreeRef"
-                :data="formattedMenuList"
-                :props="treeProps"
-                show-checkbox
-                check-strictly
-                node-key="menuId"
-                @check-change="handleCheckChange"
-                :default-checked-keys="checkedMenuIds"
-                default-expand-all
-            />
-          </el-form-item>
-        </el-col>
-      </el-row>
+      <el-form-item label="角色标识" prop="roleLabel">
+        <el-input v-model="form.roleLabel" placeholder="请输入角色标识"/>
+      </el-form-item>
+      <el-form-item label="角色名称" prop="roleName">
+        <el-input v-model="form.roleName" placeholder="请输入角色名称"/>
+      </el-form-item>
+      <el-form-item label="状态" prop="status">
+        <el-switch
+            v-model="form.status"
+            active-text="启用"
+            inactive-text="禁用"
+            :active-value="false"
+            :inactive-value="true"
+        />
+      </el-form-item>
+      <el-form-item label="备注" prop="remark">
+        <el-input v-model="form.remark" type="textarea" placeholder="请输入备注"/>
+      </el-form-item>
+      <el-form-item label="权限选择">
+        <el-tree
+            ref="permissionTreeRef"
+            :data="formattedMenuList"
+            :props="treeProps"
+            :default-checked-keys="form.menuIdList"
+            @check-change="handleCheckChange"
+            node-key="menuId"
+            check-strictly
+            show-checkbox
+            default-expand-all
+        >
+          <template #default="{ node, data }">
+            <div :class="data.menuType === 'DIRECTORY' ? 'el-checkbox_none' : ''">
+              <el-tag size="small" type="primary" v-if="data.menuType === 'DIRECTORY'">目录</el-tag>
+              <el-tag size="small" type="warning" v-if="data.menuType === 'MENU'">菜单</el-tag>
+              <el-tag size="small" type="success" v-if="data.menuType === 'BUTTON'">按钮</el-tag>
+              <span class="pl-1">{{data.menuName}}</span>
+            </div>
+          </template>
+        </el-tree>
+      </el-form-item>
 
     </el-form>
-
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="handleClose">取消</el-button>
         <el-button type="primary" @click="handleSubmit">提交</el-button>
       </span>
     </template>
-  </el-dialog>
+  </el-drawer>
 </template>
 
 <script setup>
 import {onMounted, ref} from 'vue'
 // 导入接口
 import {removeRole, saveRole, searchRoleById, searchRoleList, updateRole} from '@/api/role/index.js'
-import {useMenuStore} from "@/stores/menu.js";
-const menuStore = useMenuStore();
+import {adminMenuStore} from "@/stores/menu.js";
+const menuStore = adminMenuStore();
 // 获取全局的菜单数据
 const menuList = menuStore.menuList;
-// 存储已选择的菜单ID
-const checkedMenuIds = ref([]);
 const treeProps = {
   label: 'menuName',
-  children: 'children'
+  children: 'children',
+  disabled: 'disabled',
 }
 
 const formRef = ref(null);
@@ -154,7 +160,7 @@ const initialFormValue = {
   menuIdList: [], // 添加 menuIdList 参数，默认为空数组
 };
 
-// 新增和修改数据时的表单数据
+// 新增和编辑数据时的表单数据
 let form = ref({...initialFormValue});
 
 // 表单验证规则
@@ -180,7 +186,7 @@ function handleCheckChange(data, checked, indeterminate) {
   form.value.menuIdList = permissionTreeRef.value.getCheckedKeys();
 }
 
-// 查询所有角色
+// 查询角色列表
 function handleSearchRoleList() {
   searchRoleList(queryForm.value).then(res => {
     if (res.data.code === 200) {
@@ -190,12 +196,18 @@ function handleSearchRoleList() {
   })
 }
 
+function filterTag(value, row) {
+  return row.status === value;
+}
+
 function formatMenuList(menuItems) {
   return menuItems.map(item => ({
     menuId: item.menuId,
     menuName: item.menuName,
+    menuType: item.menuType,
     path: item.path,
     perms: item.perms,
+    disabled:  item.menuType === 'DIRECTORY',
     children: item.children ? formatMenuList(item.children) : undefined,
   }));
 }
@@ -207,7 +219,7 @@ function handleRest() {
   queryForm.value.roleLabel = undefined;
   queryForm.value.roleName = undefined;
   searchRoleList(queryForm.value).then(res => {
-    if(res.data.code == 200) {
+    if(res.data.code === 200) {
       // 获取数据
       roleList.value = res.data.data.list;
       total.value = res.data.data.total;
@@ -219,7 +231,7 @@ function handleQuery() {
   queryForm.value.pageNum = 1;
   queryForm.value.pageSize = 10;
   searchRoleList(queryForm.value).then(res => {
-    if(res.data.code == 200) {
+    if(res.data.code === 200) {
       // 获取数据
       roleList.value = res.data.data.list;
       total.value = res.data.data.total;
@@ -230,7 +242,7 @@ function handleQuery() {
 function handleSizeChange(sizeNumber) {
   queryForm.value.pageSize = sizeNumber;
   searchRoleList(queryForm.value).then(res => {
-    if(res.data.code == 200) {
+    if(res.data.code === 200) {
       // 获取数据
       roleList.value = res.data.data.list;
       total.value = res.data.data.total;
@@ -241,7 +253,7 @@ function handleSizeChange(sizeNumber) {
 function handleCurrentChange(pageNumber) {
   queryForm.value.pageNum = pageNumber;
   searchRoleList(queryForm.value).then(res => {
-    if(res.data.code == 200) {
+    if(res.data.code === 200) {
       // 获取数据
       roleList.value = res.data.data.list;
       total.value = res.data.data.total;
@@ -254,22 +266,22 @@ function handleSelectionChange(selection) {
   selectRoleNames.value = selection.map(item => item.roleName);
 }
 
-// 提交表单,根据form.roleId值判断是新增还是修改【有roleId值】
+// 提交表单,根据form.roleId值判断是新增还是编辑【有roleId值】
 function handleSubmit() {
   // 做数据校验
   formRef.value.validate((valid) => {
     if (valid) {
       if(form.value.roleId) {
-        // 修改
+        // 编辑
         updateRole(form.value).then(res => {
-          if(res.data.code == 200) {
+          if(res.data.code === 200) {
             // 关闭窗口
             roleFormShow.value = false;
             // 刷新列表
             handleSearchRoleList();
             // 弹窗提示新增成功
             ElMessage({
-              message: '修改角色成功！',
+              message: '编辑角色成功！',
               type: 'success',
             });
             handleClose();
@@ -278,7 +290,7 @@ function handleSubmit() {
       } else {
         // 新增，调用新增接口
         saveRole(form.value).then(res => {
-          if (res.data.code == 200) {
+          if (res.data.code === 200) {
             // 关闭窗口
             roleFormShow.value = false;
             // 刷新列表
@@ -310,17 +322,17 @@ function handleAdd() {
   roleTitle.value = "新增角色";
 }
 
-// 修改按钮，根据roleId查询对应的数据，弹出表单，回显数据
+// 编辑按钮，根据roleId查询对应的数据，弹出表单，回显数据
 function handleEdit(roleId) {
   // 先查询数据，再弹窗
   searchRoleById(roleId).then(res => {
-    if (res.data.code == 200) {
+    if (res.data.code === 200) {
       // 保障后端返回的字段名和前端字段名相同，可以一一赋值
       form.value = res.data.data;
-      // 根据返回的角色数据中的 menuIdList 更新 checkedMenuIds
-      checkedMenuIds.value = res.data.data.menuIdList;
+      // 根据返回的角色数据中的 menuIdList 更新
+      form.value.menuIdList = res.data.data.menuIdList;
       roleFormShow.value = true;
-      roleTitle.value = "修改角色";
+      roleTitle.value = "编辑角色";
     } else {
       ElMessage({
         message: '数据查询失败！',
@@ -344,7 +356,7 @@ function handleRemove(roleId, roleName) {
       }
   ).then(() => {
     removeRole(roleId).then(res => {
-      if (res.data.code == 200) {
+      if (res.data.code === 200) {
         ElMessage({
           message: '删除成功',
           type: 'success',
@@ -374,9 +386,8 @@ function handleClose() {
   roleFormShow.value = false;
   // 清空表单验证状态和错误信息
   formRef.value?.resetFields();
-  checkedMenuIds.value = [];
   // 重置所有节点的选中状态
-  permissionTreeRef.value.setCheckedNodes(checkedMenuIds.value, false);
+  permissionTreeRef.value.setCheckedNodes([], false);
   // 展开所有节点（递归方式）
   expandAllNodes(permissionTreeRef.value.root.childNodes);
 }
@@ -404,16 +415,9 @@ function expandAllNodes(nodes) {
   right: 110px;
 }
 
-.roleTree {
-  /* 默认隐藏所有复选框 */
-  .el-tree-node__content .el-checkbox .el-checkbox__inner {
-    display: none;
-  }
-  /* 显示子节点（非第一级节点）的复选框 */
-  .el-tree-node__children .el-tree-node__content .el-checkbox .el-checkbox__inner {
-    display: inline-block;
-  }
+/* 隐藏所有同时包含 .el-checkbox 和 .is-disabled 类的元素 */
+.el-checkbox.is-disabled {
+  display: none;
 }
-
 
 </style>

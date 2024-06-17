@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.weizi.common.mapper.GenreMapper">
+    <resultMap id="GenreDTOWithMovieIdResultMap" type="com.weizi.common.domain.dto.MovieToGenreDTO">
+        <id column="genre_id" property="genreId"/>
+        <result column="genre_name" property="genreName"/>
+        <result column="movie_id" property="movieId"/>
+    </resultMap>
+
+    <select id="selectGenreIdAndNameByMovieIds" resultMap="GenreDTOWithMovieIdResultMap">
+        SELECT
+            g.genre_id,
+            g.genre_name,
+            mtg.movie_id
+        FROM
+            genre g
+        INNER JOIN
+            movie_to_genre mtg ON g.genre_id = mtg.genre_id
+        WHERE
+            mtg.movie_id IN
+            <foreach item="movieId" index="index" collection="movieIds" open="(" separator="," close=")">
+                #{movieId}
+            </foreach>
+    </select>
+
+    <select id="selectAllGenres" resultType="com.weizi.common.domain.po.GenrePO">
+        SELECT
+            genre_id,
+            genre_name
+        FROM
+            genre
+    </select>
+
+    <select id="getAllGenreId" resultType="java.lang.Long">
+        SELECT
+            genre_id
+        FROM
+            genre
+    </select>
+
+    <delete id="deleteGenreIdListByMovieId">
+        DELETE FROM
+        movie_to_genre
+        WHERE
+        movie_id = #{movieId}
+        AND genre_id IN
+        <foreach item="genreId" index="index" collection="genreIds" open="(" separator="," close=")">
+            #{genreId}
+        </foreach>
+    </delete>
+
+    <insert id="insertGenreIdListByMovieId">
+        INSERT INTO
+        movie_to_genre
+        (movie_id, genre_id)
+        VALUES
+        <foreach item="genreId" index="index" collection="genreIds" separator=",">
+            (#{movieId}, #{genreId})
+        </foreach>
+    </insert>
+</mapper>

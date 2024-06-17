@@ -17,15 +17,19 @@ public interface AdminService extends IService<AdminPO> {
 
     WeiZiPageResult<AdminVO> selectList(AdminParamDTO adminParamDto);
 
-    AdminVO searchAdminById(Long adminId);
+    AdminDTO searchAdminById(Long adminId);
 
     WeiZiResult saveAdmin(AdminDTO adminDTO);
 
     WeiZiResult updateAdmin(AdminDTO adminDTO);
+
+    String searchAdminAvatarById(Long adminId);
 
     WeiZiResult deleteByAdminId(Long adminId);
 
     boolean updateAdminAvatar(String imageFileName, Long adminId);
 
     List<RoleTagVO> getRoleTagList();
+
+    AdminPO selectById(Long adminId);
 }

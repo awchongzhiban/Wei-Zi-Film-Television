@@ -75,6 +75,11 @@ public interface HttpStatus {
     public static final int UNSUPPORTED_TYPE = 415;
 
     /**
+     * 前端刷新某个数据
+     */
+    public static final int UNPROCESSABLE_ENTITY = 422;
+
+    /**
      * 需提示的错误
      */
     public static final int ERROR_MESSAGE = 416;

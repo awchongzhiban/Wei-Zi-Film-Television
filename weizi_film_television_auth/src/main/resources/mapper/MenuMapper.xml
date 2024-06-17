@@ -6,12 +6,19 @@
     <select id="selectAdminByRoleIds" resultType="com.weizi.common.domain.po.MenuPO">
         select m.menu_id,m.parent_id,m.menu_name,m.sort,m.menu_type,m.path,m.component_path,m.perms,m.icon
         from menu m left join role_to_menu rtm on m.menu_id = rtm.menu_id
-        where rtm.role_id in
-        <foreach collection="roleIds" open="(" close=")" separator="," item="roleId">
-            #{roleId}
-        </foreach>
-        and m.status = 0
-        or m.parent_id = 0
+        where
+        (
+            m.menu_type = 'DIRECTORY'
+            <if test="roleIds != null and roleIds.size() > 0">
+                OR (
+                rtm.role_id IN
+                <foreach collection="roleIds" item="roleId" separator="," open="(" close=")">
+                    #{roleId}
+                </foreach>
+                AND m.status = 0
+                )
+            </if>
+        )
     </select>
 
     <select id="selectAllMenu" resultType="com.weizi.common.domain.po.MenuPO">

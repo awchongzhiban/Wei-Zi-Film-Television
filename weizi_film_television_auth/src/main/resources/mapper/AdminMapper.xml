@@ -2,58 +2,52 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.weizi.common.mapper.AdminMapper">
-    <resultMap id="AdminResultMap" type="com.weizi.common.domain.po.AdminPO">
+    <resultMap id="AdminPOResultMap" type="com.weizi.common.domain.po.AdminPO">
         <id column="admin_id" property="adminId"/>
         <result column="username" property="username"/>
         <result column="nickname" property="nickname"/>
         <result column="email" property="email"/>
         <result column="mobile" property="mobile"/>
-        <result column="sex" property="sex"/>
         <result column="avatar" property="avatar"/>
         <result column="password" property="password"/>
         <result column="status" property="status"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
-        <collection property="roleList" javaType="list" resultMap="RoleResult"/>
+        <collection property="roleList" javaType="list" resultMap="RolePOResult"/>
     </resultMap>
 
     <!--    配置角色映射-->
-    <resultMap id="RoleResult" type="com.weizi.common.domain.po.RolePO">
+    <resultMap id="RolePOResult" type="com.weizi.common.domain.po.RolePO">
         <id column="role_id" property="roleId"/>
         <result column="role_label" property="roleLabel"/>
         <result column="role_name" property="roleName"/>
         <result column="sort" property="sort"/>
+    </resultMap>
+
+    <resultMap id="AdminDTOResultMap" type="com.weizi.common.domain.dto.AdminDTO">
+        <id column="admin_id" property="adminId"/>
+        <result column="username" property="username"/>
+        <result column="nickname" property="nickname"/>
+        <result column="email" property="email"/>
+        <result column="mobile" property="mobile"/>
+        <result column="avatar" property="avatar"/>
+        <result column="password" property="password"/>
         <result column="status" property="status"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
+        <result property="roleIdList" column="role_ids" typeHandler="com.weizi.common.utils.IdsStringToListTypeHandler"/>
     </resultMap>
 
-    <update id="updateAdminAvatar">
-        UPDATE admin
-        SET
-            avatar = #{imageFileName},
-            update_time = now()
-        WHERE admin_id = #{adminId}
-    </update>
-
-    <select id="selectAdminByUserName" resultMap="AdminResultMap">
-        select
-        a.admin_id,a.username,a.nickname,a.email,a.mobile,a.sex,a.avatar,a.password,
-        a.status,a.create_time,a.update_time,
-        r.role_id,r.role_label,r.role_name,r.sort
-        from admin a
-        left join admin_to_role atr on a.admin_id = atr.admin_id left join role r on r.role_id = atr.role_id
+    <select id="selectAdminByUserName" resultMap="AdminPOResultMap">
+        SELECT
+        a.admin_id, a.username, a.nickname, a.email, a.mobile, a.avatar, a.password,
+        a.status, a.create_time, a.update_time,
+        r.role_id, r.role_label, r.role_name, r.sort
+        FROM admin a
+        LEFT JOIN admin_to_role atr ON a.admin_id = atr.admin_id
+        LEFT JOIN role r ON atr.role_id = r.role_id AND r.status = 0 -- 将角色状态过滤条件移至此处
         <where>
-            r.status = 0 and
-            <if test="accountType == 0">
-                a.username = #{account}
-            </if>
-            <if test="accountType == 1">
-                a.mobile = #{account}
-            </if>
-            <if test="accountType == 2">
-                a.email = #{account}
-            </if>
+            a.username = #{account}
         </where>
     </select>
 
@@ -70,30 +64,29 @@
         INNER JOIN subordinates s ON a.parent_admin_id = s.admin_id
         )
         SELECT
-        admin_id,
-        username,
-        nickname,
-        email,
-        mobile,
-        sex,
-        avatar,
-        status,
-        create_time,
-        update_time
+            admin_id,
+            username,
+            nickname,
+            email,
+            mobile,
+            avatar,
+            status,
+            create_time,
+            update_time
         FROM
-        subordinates
+            subordinates
         <where>
             <if test="username != null and username != ''">
-                username like concat('%', #{username}, '%')
+                username LIKE concat('%', #{username}, '%')
             </if>
             <if test="nickname != null and nickname != ''">
-                AND nickname like concat('%', #{nickname}, '%')
+                AND nickname LIKE concat('%', #{nickname}, '%')
             </if>
             <if test="email != null and email != ''">
-                AND email like concat('%', #{email}, '%')
+                AND email LIKE concat('%', #{email}, '%')
             </if>
             <if test="mobile != null and mobile != ''">
-                AND mobile like concat('%', #{mobile}, '%')
+                AND mobile LIKE concat('%', #{mobile}, '%')
             </if>
         </where>
         ORDER BY create_time DESC
@@ -117,16 +110,16 @@
         subordinates
         <where>
             <if test="username != null and username != ''">
-                username like concat('%', #{username}, '%')
+                username LIKE concat('%', #{username}, '%')
             </if>
             <if test="nickname != null and nickname != ''">
-                AND nickname like concat('%', #{nickname}, '%')
+                AND nickname LIKE concat('%', #{nickname}, '%')
             </if>
             <if test="email != null and email != ''">
-                AND email like concat('%', #{email}, '%')
+                AND email LIKE concat('%', #{email}, '%')
             </if>
             <if test="mobile != null and mobile != ''">
-                AND mobile like concat('%', #{mobile}, '%')
+                AND mobile LIKE concat('%', #{mobile}, '%')
             </if>
         </where>
     </select>
@@ -161,20 +154,29 @@
         FROM role
     </select>
 
-    <select id="searchAdminById" resultType="com.weizi.common.domain.vo.list.AdminVO">
-        SELECT
-            admin_id,
-            username,
-            nickname,
-            email,
-            mobile,
-            sex,
-            avatar,
-            status,
-            create_time,
-            update_time
+    <select id="searchAdminAvatarById" resultType="java.lang.String">
+        SELECT avatar
         FROM admin
-        where admin_id = #{adminId}
+        WHERE admin_id = #{adminId}
+    </select>
+
+    <update id="updateAdminAvatar">
+        UPDATE admin
+        SET
+            avatar = #{imageFileName},
+            update_time = now()
+        WHERE admin_id = #{adminId}
+    </update>
+
+    <select id="searchAdminById" resultMap="AdminDTOResultMap">
+        SELECT
+            a.admin_id, a.username, a.nickname, a.email, a.mobile, a.avatar, a.password,
+            a.status, a.create_time, a.update_time,
+            IFNULL(GROUP_CONCAT(r.role_id), '') AS role_ids
+        FROM admin a
+        LEFT JOIN admin_to_role atr ON a.admin_id = atr.admin_id
+        LEFT JOIN role r ON atr.role_id = r.role_id AND r.status = 0
+        WHERE a.admin_id = #{adminId}
     </select>
 
     <select id="findAllAdminIdAndParentId" resultType="com.weizi.common.domain.po.AdminTreeNode">
@@ -183,4 +185,16 @@
             parent_admin_id
         FROM admin
     </select>
+
+    <delete id="deleteAdminToRoleIdList">
+        delete from admin_to_role where admin_id = #{adminId}
+    </delete>
+
+    <insert id="insertAdminToRoleIdList" parameterType="map">
+        INSERT INTO admin_to_role (admin_id, role_id)
+        VALUES
+        <foreach item="roleId" index="index" collection="roleIdList" separator=",">
+            (#{adminId}, #{roleId})
+        </foreach>
+    </insert>
 </mapper>

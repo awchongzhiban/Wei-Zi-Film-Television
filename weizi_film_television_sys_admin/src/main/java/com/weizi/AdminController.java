@@ -1,9 +1,11 @@
 package com.weizi;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.ObjectUtil;
 import com.weizi.common.constants.FileConstants;
 import com.weizi.common.domain.dto.AdminDTO;
 import com.weizi.common.domain.po.AdminPO;
+import com.weizi.common.domain.po.RolePO;
 import com.weizi.common.domain.vo.list.AdminVO;
 import com.weizi.common.domain.dto.pageParam.AdminParamDTO;
 import com.weizi.common.domain.vo.list.RoleTagVO;
@@ -23,6 +25,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @date AWei
@@ -44,12 +47,10 @@ public class AdminController {
     private ImageUtils imageUtils;
 
     private final AdminService adminService;
-    private final AdminMapper adminMapper;
     private final AdminTreeService adminTreeService;
 
-    public AdminController(AdminService adminService, AdminMapper adminMapper, AdminTreeService adminTreeService) {
+    public AdminController(AdminService adminService, AdminTreeService adminTreeService) {
         this.adminService = adminService;
-        this.adminMapper = adminMapper;
         this.adminTreeService = adminTreeService;
     }
 
@@ -84,9 +85,8 @@ public class AdminController {
         if (ObjectUtil.isNull(adminId)) {
             return WeiZiResult.error("adminId不可为空！");
         }
-        AdminVO admin = adminService.searchAdminById(adminId);
-        if (ObjectUtil.isNotNull(admin))
-            return WeiZiResult.success(admin);
+        AdminDTO adminDTO = adminService.searchAdminById(adminId);
+        if (ObjectUtil.isNotNull(adminDTO)) return WeiZiResult.success(adminDTO);
         return WeiZiResult.error("该管理员不存在！");
     }
 
@@ -125,9 +125,9 @@ public class AdminController {
                 return WeiZiResult.error("暂无删除该管理员的权限");
             if (ObjectUtil.isNotNull(WeiZiSecurityUtil.getLoginAdmin().getId()) && !WeiZiSecurityUtil.getLoginAdmin().getId().equals(adminId)) {
                 // 先获取原本的头像数据
-                AdminVO admin = adminService.searchAdminById(adminId);
-                if (ObjectUtil.isNotNull(admin) && ObjectUtil.isNotNull(admin.getAvatar()))
-                    imageUtils.deleteImage(admin.getAvatar(), FileConstants.ADMIN_AVATAR);
+                String avatar = adminService.searchAdminAvatarById(adminId);
+                if (ObjectUtil.isNotNull(avatar))
+                    imageUtils.deleteImage(avatar, FileConstants.ADMIN_AVATAR);
                 return adminService.deleteByAdminId(adminId);
             }
             else
@@ -137,7 +137,7 @@ public class AdminController {
     }
 
     @PostMapping("uploadAvatar")
-    public WeiZiResult uploadAvatar(@RequestParam("file") MultipartFile file, @RequestParam("adminId") Long adminId) throws IOException {
+    public WeiZiResult uploadAvatar(@RequestParam("file") MultipartFile file, @RequestParam("adminId") Long adminId) {
         if (file.isEmpty()) {
             return WeiZiResult.error("上传文件为空");
         }
@@ -148,7 +148,7 @@ public class AdminController {
         String fileType = file.getContentType();
 
         // 判断文件大小是否符合要求
-        long maxSize = parseSize(maxAvatarSize);
+        long maxSize = imageUtils.parseSize(maxAvatarSize);
         if (fileSize > maxSize) {
             return WeiZiResult.error("文件大小超过限制（" + maxAvatarSize + "）");
         }
@@ -161,7 +161,7 @@ public class AdminController {
         // 判断文件名是否为空
         if (ObjectUtil.isNotNull(imageFileName)) {
             // 先获取原本的头像数据
-            AdminPO admin = adminMapper.selectById(adminId);
+            AdminPO admin = adminService.selectById(adminId);
             // 更新成功后删除原本的头像文件，防止冗余
             if (adminService.updateAdminAvatar(imageFileName, adminId)) {
                 if (ObjectUtil.isNotNull(admin) && ObjectUtil.isNotNull(admin.getAvatar()))
@@ -174,18 +174,5 @@ public class AdminController {
             }
         }
         return WeiZiResult.error("文件上传失败");
-    }
-
-    // FIXME 后续加入上传电影或海报等就修改成公共方法
-    private long parseSize(String sizeStr) {
-        String numberPart = sizeStr.substring(0, sizeStr.length() - 2);
-        String unitPart = sizeStr.substring(sizeStr.length() - 2).toUpperCase();
-        long multiplier = switch (unitPart) {
-            case "KB" -> 1024;
-            case "MB" -> 1024 * 1024;
-            case "GB" -> 1024 * 1024 * 1024;
-            default -> throw new IllegalArgumentException("Invalid size unit: " + unitPart);
-        };
-        return Long.parseLong(numberPart) * multiplier;
     }
 }

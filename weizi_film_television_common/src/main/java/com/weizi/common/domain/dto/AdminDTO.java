@@ -2,11 +2,13 @@ package com.weizi.common.domain.dto;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.weizi.common.domain.po.RolePO;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -20,11 +22,9 @@ public class AdminDTO implements Serializable {
     private String avatar;
     private String email;
     private String mobile;
-    private Boolean sex;
     @NotNull(message = "密码不能为空")
     private String password;
     private Boolean status;
-    private List<Long> roleIdList;
     @NotNull(message = "创建者ID不能为空")
     private Long parentAdminId;
     // 逻辑删除，Mybatis-Plus里默认0是未删除，1是删除
@@ -37,4 +37,7 @@ public class AdminDTO implements Serializable {
     @TableField(fill = FieldFill.INSERT_UPDATE)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;
+
+    @TableField(exist = false)
+    private List<Long> roleIdList;
 }

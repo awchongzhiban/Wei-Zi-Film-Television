@@ -6,7 +6,6 @@
     <select id="selectByAdminId" resultType="java.lang.Long">
         select role_id from admin_to_role where admin_id = #{adminId}
     </select>
-
     <select id="countTotal" resultType="java.lang.Integer">
         WITH RECURSIVE subordinates AS (
         -- 初始化部分: 选出根节点
@@ -30,7 +29,7 @@
                 role_id != #{superAdminRoleId}
             </if>
             <if test="roleLabel != null and roleLabel != ''">
-                role_label like concat('%', #{roleLabel}, '%')
+                AND role_label like concat('%', #{roleLabel}, '%')
             </if>
             <if test="roleName != null and roleName != ''">
                 AND role_name like concat('%', #{roleName}, '%')
@@ -69,7 +68,7 @@
                 role_id != #{superAdminRoleId}
             </if>
             <if test="roleLabel != null and roleLabel != ''">
-                role_label like concat('%', #{roleLabel}, '%')
+                AND role_label like concat('%', #{roleLabel}, '%')
             </if>
             <if test="roleName != null and roleName != ''">
                 AND role_name like concat('%', #{roleName}, '%')
@@ -88,14 +87,14 @@
     </select>
 
        <resultMap id="roleWithMenuIdsMap" type="com.weizi.common.domain.dto.RoleDTO">
-       <id property="roleId" column="role_id"/>
-       <result property="roleLabel" column="role_label"/>
-       <result property="roleName" column="role_name"/>
-       <result property="sort" column="sort"/>
-       <result property="status" column="status"/>
-       <result property="remark" column="remark"/>
-       <result property="menuIdList" column="menu_ids" typeHandler="com.weizi.common.utils.IdsStringToListTypeHandler"/>
-   </resultMap>
+           <id property="roleId" column="role_id"/>
+           <result property="roleLabel" column="role_label"/>
+           <result property="roleName" column="role_name"/>
+           <result property="sort" column="sort"/>
+           <result property="status" column="status"/>
+           <result property="remark" column="remark"/>
+           <result property="menuIdList" column="menu_ids" typeHandler="com.weizi.common.utils.IdsStringToListTypeHandler"/>
+       </resultMap>
 
     <select id="searchRoleById" resultMap="roleWithMenuIdsMap">
         SELECT r.*, IFNULL(GROUP_CONCAT(rm.menu_id), '') AS menu_ids
@@ -105,8 +104,6 @@
         GROUP BY r.role_id;
     </select>
 
-
-
     <update id="updateRole">
         UPDATE role
         <set>
@@ -114,18 +111,22 @@
                 role_label = #{roleLabel},
             </if>
             <if test="roleName != null and roleName != ''">
-                role_name = #{roleName},
+                AND role_name = #{roleName},
             </if>
             <if test="sort != null">
-                sort = #{sort},
+                AND sort = #{sort},
             </if>
             <if test="status != null">
-                status = #{status},
+                AND status = #{status},
             </if>
             remark = #{remark},
         </set>
         WHERE role_id = #{roleId}
     </update>
+
+    <delete id="deleteRoleToMenuIdList">
+        delete from role_to_menu where role_id = #{roleId}
+    </delete>
 
     <insert id="insertRoleToMenuIdList" parameterType="map">
         INSERT INTO role_to_menu (role_id, menu_id)
@@ -134,10 +135,5 @@
             (#{roleId}, #{menuId})
         </foreach>
     </insert>
-
-
-    <delete id="deleteRoleToMenuIdList">
-        delete from role_to_menu where role_id = #{roleId}
-    </delete>
 
 </mapper>

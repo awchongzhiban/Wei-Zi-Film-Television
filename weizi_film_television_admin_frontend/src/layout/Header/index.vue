@@ -40,9 +40,9 @@
     import {ArrowDown} from "@element-plus/icons-vue";
     const adminStore = useAdminStore();
     let { avatar,nickname } = storeToRefs(adminStore)
-    import { useMenuStore } from '@/stores/menu.js'
+    import { adminMenuStore } from '@/stores/menu.js'
     import router from "@/router/index.js";
-    const menuStore = useMenuStore();
+    const menuStore = adminMenuStore();
     const { breadcrumbList } = storeToRefs(menuStore)
     // 导入logout方法
     import { adminLogout } from '@/api/auth/index.js';
@@ -58,7 +58,7 @@
       // 调用login方法
       adminLogout().then((res) => {
         // 判断是否成功
-        if (res.data.code == 200) {
+        if (res.data.code === 200) {
           removeToken("weiziToken")
           // 清除 menuStore 中的信息 TODO 后期这里也要改成localStorage.removeItem
           menuStore.setMenuList([]);

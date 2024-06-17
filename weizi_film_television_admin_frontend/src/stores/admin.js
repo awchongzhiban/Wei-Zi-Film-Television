@@ -15,7 +15,7 @@ export const useAdminStore = defineStore('admin', {
         String: (state) => state.nickname
     },
 
-    // 修改数据方法
+    // 编辑数据方法
     actions: {
         setAdminInfo(data) {
             this.adminId = data.adminId;

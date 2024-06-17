@@ -2,20 +2,28 @@ package com.weizi.common.utils;
 
 import com.google.common.collect.Sets;
 import io.minio.*;
+import io.minio.errors.MinioException;
+import io.minio.http.Method;
 import io.minio.messages.DeleteError;
 import io.minio.messages.DeleteObject;
 import io.minio.messages.Item;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @Author AWei
@@ -25,6 +33,9 @@ import java.util.Set;
 @Slf4j
 @Component
 public class MinioUtils {
+    @Value("${minio.expire-time-seconds}")
+    private Integer MINIO_EXPIRY_TIME;
+    
     private final MinioClient minioClient;
 
     public MinioUtils(MinioClient minioClient) {
@@ -205,5 +216,27 @@ public class MinioUtils {
             log.error("Minio获取文件流异常!|参数：bucketName:{},prefixObjectName:{}|异常:{}", bucketName, prefixObjectName, e.getMessage());
         }
         return null;
+    }
+    /**
+     * 生成预签名URL
+     *
+     * @param bucketName       桶名称
+     * @param objectName       对象名称
+     */
+    public String generatePresignedGetObjectUrl(String bucketName, String objectName) {
+        try {
+            return minioClient.getPresignedObjectUrl(GetPresignedObjectUrlArgs.builder()
+                    .bucket(bucketName)
+                    .object(objectName)
+                    .method(Method.GET)
+                    .expiry(MINIO_EXPIRY_TIME, TimeUnit.SECONDS)
+                    .build());
+        } catch (MinioException e) {
+            // 处理异常情况
+            throw new RuntimeException("无法生成预签名的URL。", e);
+        } catch (IOException | NoSuchAlgorithmException | InvalidKeyException e) {
+            log.error("Minio生成预签名URL异常!|参数：bucketName:{},objectName:{}|异常:{}", bucketName, objectName, e.getMessage());
+            throw new RuntimeException(e);
+        }
     }
 }

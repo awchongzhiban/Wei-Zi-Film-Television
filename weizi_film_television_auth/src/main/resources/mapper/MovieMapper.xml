@@ -2,14 +2,15 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.weizi.common.mapper.MovieMapper">
-    <resultMap id="MoviePOResultMap" type="com.weizi.common.domain.po.MoviePO">
+    <resultMap id="MovieDTOResultMap" type="com.weizi.common.domain.dto.MovieDTO">
         <id column="movie_id" property="movieId"/>
         <result property="movieName" column="movie_name"/>
         <result property="fileType" column="file_type"/>
         <result property="fileSize" column="file_size"/>
         <result property="isMerge" column="is_merge"/>
         <result property="isPlayer" column="is_player"/>
-        <result property="posterUrl" column="poster_url"/>
+        <result property="status" column="status"/>
+        <result property="poster" column="poster"/>
         <result property="movieMd5" column="movie_md5"/>
         <result property="adminId" column="admin_id"/>
         <result property="movieShardTotal" column="movie_shard_total"/>
@@ -17,11 +18,22 @@
         <result property="updateTime" column="update_time"/>
     </resultMap>
 
+    <resultMap id="MovieParamResult" type="com.weizi.common.domain.dto.dataParam.MovieParam">
+        <id property="movieId" column="movie_id"/>
+        <result property="movieName" column="movie_name"/>
+        <result property="movieMd5" column="movie_md5"/>
+        <result property="status" column="status"/>
+        <result property="poster" column="poster"/>
+        <!-- 使用collection来处理多对多关系 -->
+        <result property="genreIdList" column="genre_ids" typeHandler="com.weizi.common.utils.IdsStringToListTypeHandler"/>
+    </resultMap>
+
+
     <select id="countTotal" resultType="java.lang.Integer">
         SELECT
-        COUNT(*)
+            COUNT(*)
         FROM
-        movie
+            movie
         <where>
             <if test="movieName != null and movieName != ''">
                 movie_name like concat('%', #{movieName}, '%')
@@ -29,7 +41,7 @@
         </where>
     </select>
 
-    <select id="selectMoviePage" resultMap="MoviePOResultMap">
+    <select id="selectMoviePage" resultMap="MovieDTOResultMap">
         SELECT
             movie_id,
             movie_name,
@@ -37,7 +49,8 @@
             file_size,
             is_merge,
             is_player,
-            poster_url,
+            status,
+            poster,
             movie_md5,
             admin_id,
             movie_shard_total,
@@ -61,8 +74,8 @@
             update_time = now()
         WHERE
             movie_id = #{movieId}
-        AND admin_id = #{adminId}
     </update>
+
     <update id="updateIsPlayerByMovieMd5">
         UPDATE movie
         SET
@@ -72,7 +85,26 @@
             movie_md5 = #{movieMd5}
     </update>
 
-    <select id="selectByMovieMd5" resultMap="MoviePOResultMap">
+    <update id="updatePosterById">
+        UPDATE movie
+        SET
+            poster = #{poster},
+            update_time = now()
+        WHERE
+            movie_id = #{movieId}
+    </update>
+
+    <update id="updateMovie">
+         UPDATE movie
+         SET
+             movie_name = #{movieName},
+             status = #{status},
+             update_time = now()
+         WHERE
+             movie_id = #{movieId}
+    </update>
+
+    <select id="selectByMovieMd5" resultMap="MovieDTOResultMap">
         SELECT
             movie_id,
             movie_name,
@@ -80,7 +112,8 @@
             file_size,
             is_merge,
             is_player,
-            poster_url,
+            status,
+            poster,
             movie_md5,
             admin_id,
             movie_shard_total,
@@ -91,4 +124,27 @@
         WHERE
             movie_md5 = #{movieMd5}
     </select>
+
+    <select id="selectMovieParamById" resultMap="MovieParamResult">
+        SELECT
+            m.movie_id,
+            m.movie_name,
+            m.movie_md5,
+            m.status,
+            m.poster,
+            (
+                SELECT
+                    GROUP_CONCAT(g.genre_id)
+                FROM
+                    movie_to_genre mgm
+                        INNER JOIN genre g ON mgm.genre_id = g.genre_id
+                WHERE
+                    mgm.movie_id = m.movie_id
+            ) AS genre_ids
+        FROM
+            movie m
+        WHERE
+            m.movie_id = #{movieId}
+    </select>
+
 </mapper>

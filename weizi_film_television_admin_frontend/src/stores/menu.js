@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 // 导入查询用户菜单接口
 import { searchSelfRouter } from '@/api/admin/index.js'
 // 定义 store 并导出
-export const useMenuStore = defineStore('menu', {
+export const adminMenuStore = defineStore('menu', {
     // 定义状态【数据】
     state: () => ({
         menuList: [],
@@ -21,7 +21,7 @@ export const useMenuStore = defineStore('menu', {
         String: state => state.currentRoute,
     },
 
-    // 修改数据方法
+    // 编辑数据方法
     actions: {
         setMenuList(data) {
             this.menuList = data;
@@ -29,6 +29,7 @@ export const useMenuStore = defineStore('menu', {
         // 渲染动态路由数据结构，存储到pinia中，不需要每次都去渲染数据结构了
         // data就是查询出来的用户菜单
         setRouterList(data) {
+            this.routerList = [];
             // 硬编码的“首页”路由信息
             const hardcodedHomeRoute = {
                 name: '首页',
@@ -88,7 +89,7 @@ export const useMenuStore = defineStore('menu', {
             return new Promise((resolve,reject) => {
                 // 查询用户的菜单
                 searchSelfRouter().then(res => {
-                    if(res.data.code == 200) {
+                    if(res.data.code === 200) {
                         this.setMenuList(res.data.data);
                         this.setRouterList(res.data.data);
                         resolve()
@@ -126,10 +127,10 @@ export const useMenuStore = defineStore('menu', {
     /*为什么使用持久化就不行了，原因是因为只进行了判断是否有数据，并没有判断router里面是否有被addRouter过，
     如果刷新页面后获取到的routerList就直接判断路径是否存在了，实际上这时候router里面只有白名单数据*/
     // 使用持久化
-    /*persist: {
+    persist: {
     	enabled: true,
         storage: localStorage,
-        key: 'useMenu',
-        path: ['menuList','routerList']
-    }*/
+        key: 'adminMenu',
+        path: ['menuList', 'routerList']
+    }
 })

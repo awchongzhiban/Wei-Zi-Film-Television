@@ -43,12 +43,10 @@ public class FileOperationUtils {
     private int sliceDuration;
 
 
-    private final VideoConcatenationService videoConcatenationService;
     private final MinioUtils minioUtils;
     private final MinioConfig minioConfig;
 
-    public FileOperationUtils(VideoConcatenationService videoConcatenationService, MinioUtils minioUtils, MinioConfig minioConfig) {
-        this.videoConcatenationService = videoConcatenationService;
+    public FileOperationUtils(MinioUtils minioUtils, MinioConfig minioConfig) {
         this.minioUtils = minioUtils;
         this.minioConfig = minioConfig;
     }

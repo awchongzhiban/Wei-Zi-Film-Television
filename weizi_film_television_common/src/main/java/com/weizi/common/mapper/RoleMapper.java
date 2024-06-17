@@ -19,12 +19,12 @@ public interface RoleMapper extends BaseMapper<RoleDTO> {
     List<RoleVO> selectRolePage(@Param("roleIds") List<Long> roleIds, @Param("roleLabel")String roleLabel, @Param("roleName") String roleName, @Param("pageNum") Long pageNum, @Param("pageSize") Long pageSize, @Param("superAdminRoleId") Long superAdminRoleId);
     // 获取所有角色ID和父ID生成树用于放入redis中
     List<RoleTreeNode> findAllRoleIdAndParentId();
+    // 删除角色ID和菜单ID中间表
+    int deleteRoleToMenuIdList(@Param("roleId") Long roleId);
     // 角色ID和菜单ID列表插入中间表
     int insertRoleToMenuIdList(@Param("roleId") Long roleId, @Param("menuIdList") List<Long> menuIdList);
     // 更新角色
     int updateRole(RoleDTO roleDTO);
-    // 角色ID和菜单ID列表插入中间表
-    int deleteRoleToMenuIdList(@Param("roleId") Long roleId);
 
     RoleDTO searchRoleById(@Param("roleId") Long roleId);
 }

@@ -1,14 +1,16 @@
 <template>
     <div class="common-layout">
-    <el-container>
-      <el-aside class="aside" :style="{ height: height + 'px',minHeight: minHeight + 'px' }">
-        <Aside/>
+    <el-container :style="{ height: height + 'px',minHeight: minHeight + 'px'}">
+      <el-aside class="aside">
+        <el-scrollbar>
+          <Aside/>
+        </el-scrollbar>
       </el-aside>
       <el-container>
         <el-header style="background-color: #f0f0f0;">
             <Header/>
         </el-header>
-        <el-main :style="{ height: height - 60 + 'px',minHeight: minHeight - 60 + 'px'}">
+        <el-main>
             <Main/>
         </el-main>
       </el-container>
@@ -22,6 +24,7 @@
     import Header from './Header/index.vue'
     import Main from './Main/index.vue'
     import { ref,onMounted } from 'vue';
+    import {RouterView} from "vue-router";
     const height = ref(0)
     const minHeight = ref(0)
 

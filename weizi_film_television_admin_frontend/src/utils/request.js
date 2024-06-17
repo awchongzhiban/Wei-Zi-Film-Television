@@ -34,21 +34,21 @@ request.interceptors.response.use((response) => {
     let {msg,code} = response.data
     if(code == null) {
         return response;
-    }else if(code == 200) {
+    }else if(code === 200) {
         return response;
     }else if(code == 401) {
         ElMessage.error('没有操作权限！');
     }else if(code == 403) {
         ElMessage.error('登录过期！');
-        // 需要重新登陆，跳转到登录页面，清除pinia中的数据，sessionStorage中
-        window.sessionStorage.clear();
+        // 需要重新登陆，跳转到登录页面，清除pinia中的数据，localStorage中
+        window.localStorage.clear();
         router.push('/admin-login');
     }
     return Promise.reject(msg);
 },(error) => {
     // 出现异常
     ElMessage.error('error=====>',error);
-    window.sessionStorage.clear();
+    window.localStorage.clear();
     router.push('/admin-login');
     return Promise.reject(error);
 })

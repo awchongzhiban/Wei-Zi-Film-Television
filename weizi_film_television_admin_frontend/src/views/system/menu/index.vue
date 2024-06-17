@@ -45,13 +45,13 @@
         <el-table-column prop="sort" label="排序" width="80"/>
         <el-table-column prop="componentPath" label="组件路径" width="200" />
         <el-table-column prop="createTime" label="创建时间" width="200"/>
-        <el-table-column prop="updateTime" label="修改时间" width="200"/>
+        <el-table-column prop="updateTime" label="编辑时间" width="200"/>
         <el-table-column prop="remark" label="备注" width="200" />
         <el-table-column fixed="right" label="操作" width="200">
             <template #default="scope">
-                <el-button link type="primary" size="small" v-if="scope.row.menuType !== 'BUTTON'" @click="handleAdd(scope.row.menuId)">新增</el-button>
-                <el-button link type="success" size="small" @click="handleEdit(scope.row.menuId)">修改</el-button>
-                <el-button link type="danger" size="small" @click="handleRemove(scope.row.menuId, scope.row.menuName)">删除</el-button>
+                <el-button type="primary" size="small" v-if="scope.row.menuType !== 'BUTTON'" @click="handleAdd(scope.row.menuId)">新增</el-button>
+                <el-button type="success" size="small" @click="handleEdit(scope.row.menuId)">编辑</el-button>
+                <el-button type="danger" size="small" @click="handleRemove(scope.row.menuId, scope.row.menuName)">删除</el-button>
             </template>
         </el-table-column>
     </el-table>
@@ -62,14 +62,14 @@
             @size-change="handleSizeChange" @current-change="handleCurrentChange" />
     </div>
 
-    <!-- 新增和修改的弹窗 -->
-    <el-dialog v-model="menuFormShow" :title="menuTitle" width="50%" :before-close="handleClose">
-        <!-- 表单 -->
-      <el-form :model="form" :rules="rules" label-width="120px" ref="formRef">
+    <!-- 新增和编辑的弹窗 -->
+    <el-drawer v-model="menuFormShow" :title="menuTitle" width="50%" :before-close="handleClose">
+      <!-- 表单 -->
+      <el-form :model="form" :rules="rules" label-width="120px" ref="formRef" style="padding-right: 10px">
         <el-row>
           <el-col :span="24">
             <el-form-item label="菜单类型" prop="menuType">
-              <el-radio-group v-model="form.menuType">
+              <el-radio-group v-model="form.menuType" @change="onMenuTypeChange">
                 <el-radio border :label="'DIRECTORY'">目录</el-radio>
                 <el-radio border :label="'MENU'">菜单</el-radio>
                 <el-radio border :label="'BUTTON'">按钮</el-radio>
@@ -77,102 +77,80 @@
             </el-form-item>
           </el-col>
         </el-row>
-
         <el-row>
-            <el-col :span="12">
+            <el-col :span="24" v-if="form.menuType !== 'BUTTON'">
                 <el-form-item label="菜单图标" prop="icon">
-                    <el-popover
-                        placement="bottom-start"
-                        :width="460"
-                        trigger="click"
-                    >
-                        <template #reference>
-                            <!-- 通过插槽实现图标选择，默认是一个有图标的输入框 -->
-                            <el-input v-model="form.icon" placeholder="请选择图标">
-                                <template #prefix>
-                                    <!-- 判断是否选中了icon -->
-                                    <svg-icon
-                                        v-if="form.icon"
-                                        slot="prefix"
-                                        :name="form.icon"
-                                        width="16px"
-                                        height="16px"
-                                    />
-                                    <!-- 如果未选中，显示默认的搜索图标 -->
-                                    <el-icon v-else class="el-input__icon"><search /></el-icon>
-                                </template>
-                            </el-input>
-                        </template>
-                        <!-- 显示选择图标的组件 -->
-                        <IconSelect ref="iconSelect" @selected="handleSelect" :active-icon="form.icon"/>
-                    </el-popover>
-
+                  <el-input v-model="form.icon" placeholder="请输入菜单图标"/>
                 </el-form-item>
             </el-col>
-            <el-col :span="12">
+        </el-row>
+        <el-row>
+            <el-col :span="24">
                 <el-form-item label="菜单名称" prop="menuName">
                     <el-input v-model="form.menuName" placeholder="请输入菜单名称"/>
                 </el-form-item>
             </el-col>
         </el-row>
-
         <el-row>
-            <el-col :span="12">
-                <el-form-item label="排序" prop="sort">
-                    <el-input-number :min="0" v-model="form.sort"/>
-                </el-form-item>
-            </el-col>
-            <el-col :span="12">
+            <el-col :span="24">
                 <el-form-item label="路由地址" prop="path">
                     <el-input v-model="form.path" placeholder="请输入路由地址"/>
                 </el-form-item>
             </el-col>
         </el-row>
         <el-row>
-            <el-col :span="12">
-                <el-form-item label="组件路径" prop="componentPath">
-                    <el-input v-model="form.componentPath" placeholder="请输入页面路径"/>
-                </el-form-item>
+            <el-col :span="24">
+              <el-form-item label="组件路径" prop="componentPath">
+                <el-input v-model="form.componentPath" placeholder="请输入页面路径"/>
+              </el-form-item>
             </el-col>
-            <el-col :span="12">
+        </el-row>
+        <el-row>
+            <el-col :span="24">
                 <el-form-item label="权限标识" prop="perms">
                     <el-input v-model="form.perms" placeholder="请输入权限标识"/>
                 </el-form-item>
             </el-col>
         </el-row>
         <el-row>
-            <el-col :span="12">
-                <el-form-item label="状态" prop="status">
-                    <el-switch
-                        v-model="form.status"
-                        active-text="可用"
-                        inactive-text="不可用"
-                        :active-value="false"
-                        :inactive-value="true"
-                    />
-                </el-form-item>
+            <el-col :span="24">
+            <el-form-item label="状态" prop="status">
+              <el-switch
+                  v-model="form.status"
+                  active-text="可用"
+                  inactive-text="不可用"
+                  :active-value="false"
+                  :inactive-value="true"
+              />
+            </el-form-item>
+          </el-col>
+        </el-row>
+        <el-row>
+            <el-col :span="24">
+              <el-form-item label="排序" prop="sort">
+                <el-input-number :min="0" v-model="form.sort"/>
+              </el-form-item>
             </el-col>
-            <el-col :span="12">
+        </el-row>
+        <el-row>
+            <el-col :span="24">
                 <el-form-item label="备注" prop="remark">
-                    <el-input v-model="form.remark" placeholder="请输入备注"/>
+                    <el-input v-model="form.remark" type="textarea" placeholder="请输入备注"/>
                 </el-form-item>
             </el-col>
         </el-row>
       </el-form>
-
       <template #footer>
           <span class="dialog-footer">
               <el-button @click="handleClose">取消</el-button>
               <el-button type="primary" @click="handleSubmit">提交</el-button>
           </span>
       </template>
-    </el-dialog>
+    </el-drawer>
 </template>
 
 <script setup>
 import {onMounted, ref} from 'vue'
-// 导入图标选择组件
-import IconSelect from '@/components/IconSelect/index.vue'
 // 导入接口
 import {searchMenuList, searchMenuById, saveMenu, updateMenu, removeMenu} from '@/api/menu/index.js'
 
@@ -207,7 +185,7 @@ const initialFormValue = {
   remark: undefined,
 };
 
-// 新增和修改数据时的表单数据
+// 新增和编辑数据时的表单数据
 let form = ref({...initialFormValue});
 
 // 表单验证规则
@@ -241,6 +219,7 @@ let menuSelectData = ref([])
 let menuList = ref([])
 onMounted(() => {
     handleSearchMenuList();
+    updateIconRequired(form.value.menuType)
 })
 
 // 查询所有菜单
@@ -254,6 +233,19 @@ function handleSearchMenuList() {
     }
   })
 }
+// 搜索
+function handleQuery() {
+  queryForm.value.pageNum = 1;
+  queryForm.value.pageSize = 10;
+  searchMenuList(queryForm.value).then(res => {
+    if(res.data.code === 200) {
+      // 获取数据
+      menuList.value = res.data.data.list;
+      total.value = res.data.data.total;
+    }
+  })
+}
+
 // 重置
 function handleRest() {
   queryForm.value.pageNum = 1;
@@ -261,19 +253,7 @@ function handleRest() {
   queryForm.value.menuName = undefined;
   queryForm.value.perms = undefined;
   searchMenuList(queryForm.value).then(res => {
-    if(res.data.code == 200) {
-      // 获取数据
-      menuList.value = res.data.data.list;
-      total.value = res.data.data.total;
-    }
-  })
-}
-// 搜索
-function handleQuery() {
-  queryForm.value.pageNum = 1;
-  queryForm.value.pageSize = 10;
-  searchMenuList(queryForm.value).then(res => {
-    if(res.data.code == 200) {
+    if(res.data.code === 200) {
       // 获取数据
       menuList.value = res.data.data.list;
       total.value = res.data.data.total;
@@ -284,7 +264,7 @@ function handleQuery() {
 function handleSizeChange(sizeNumber) {
   queryForm.value.pageSize = sizeNumber;
   searchMenuList(queryForm.value).then(res => {
-    if(res.data.code == 200) {
+    if(res.data.code === 200) {
       // 获取数据
       menuList.value = res.data.data.list;
       total.value = res.data.data.total;
@@ -295,7 +275,7 @@ function handleSizeChange(sizeNumber) {
 function handleCurrentChange(pageNumber) {
   queryForm.value.pageNum = pageNumber;
   searchMenuList(queryForm.value).then(res => {
-    if(res.data.code == 200) {
+    if(res.data.code === 200) {
       // 获取数据
       menuList.value = res.data.data.list;
       total.value = res.data.data.total;
@@ -307,22 +287,34 @@ function handleSelectionChange(selection) {
   selectMenuIds.value = selection.map(item => item.menuId);
   selectMenuNames.value = selection.map(item => item.menuName);
 }
-// 提交表单,根据form.menuId值判断是新增还是修改【有menuId值】
+
+//  菜单类型改变
+function onMenuTypeChange() {
+  updateIconRequired(form.value.menuType);
+}
+
+// 更新Icon规则
+function updateIconRequired(menuType) {
+  rules.value.icon.required = menuType !== 'BUTTON';
+}
+
+// 提交表单,根据form.menuId值判断是新增还是编辑【有menuId值】
 function handleSubmit() {
   // 做数据校验
   formRef.value.validate((valid) => {
     if (valid) {
+      if (form.value.menuType === 'BUTTON') form.value.icon = undefined;
       if(form.value.menuId) {
-        // 修改
+        // 编辑
         updateMenu(form.value).then(res => {
-          if(res.data.code == 200) {
+          if(res.data.code === 200) {
             // 关闭窗口
             menuFormShow.value = false;
             // 刷新列表
             handleSearchMenuList();
             // 弹窗提示新增成功
             ElMessage({
-              message: '修改菜单成功！',
+              message: '编辑菜单成功！',
               type: 'success',
             });
             handleClose();
@@ -331,7 +323,7 @@ function handleSubmit() {
       }else {
         // 新增，调用新增接口
         saveMenu(form.value).then(res => {
-          if(res.data.code == 200) {
+          if(res.data.code === 200) {
             // 关闭窗口
             menuFormShow.value = false;
             // 刷新列表
@@ -367,15 +359,15 @@ function handleAdd(parentId) {
   }
 }
 
-// 修改按钮，根据menuId查询对应的数据，弹出表单，回显数据
+// 编辑按钮，根据menuId查询对应的数据，弹出表单，回显数据
 function handleEdit(menuId) {
   // 先查询数据，再弹窗
   searchMenuById(menuId).then(res => {
-    if(res.data.code == 200) {
+    if(res.data.code === 200) {
       // 保障后端返回的字段名和前端字段名相同，可以一一赋值
       form.value = res.data.data;
       menuFormShow.value = true;
-      menuTitle.value = "修改菜单";
+      menuTitle.value = "编辑菜单";
     } else {
       ElMessage({
         message: '数据查询失败！',
@@ -408,7 +400,7 @@ function handleRemove(menuId, menuName) {
       }
   ).then(() => {
         removeMenu(menuIds).then(res => {
-          if(res.data.code == 200) {
+          if(res.data.code === 200) {
             ElMessage({
               message: '删除成功',
               type: 'success',
@@ -416,7 +408,6 @@ function handleRemove(menuId, menuName) {
             // 刷新列表
             handleSearchMenuList();
           } else {
-            console.log("res.data: ",res.data)
             ElMessage({
               message: res.data.msg || '',
               type: 'error',

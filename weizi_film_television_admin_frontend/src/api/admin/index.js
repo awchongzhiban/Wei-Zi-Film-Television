@@ -35,8 +35,8 @@ export function getRoleTagList() {
     })
 }
 
-// 通过id查询菜单
-export function searchAdminById(adminId) {
+// 通过id查询管理员
+export function getDetail(adminId) {
     return request({
         url: `/admin/admin/getDetail`,
         method: "GET",
@@ -45,7 +45,8 @@ export function searchAdminById(adminId) {
         }
     })
 }
-// 保存菜单
+
+// 保存管理员
 export function saveAdmin(data) {
     return request({
         url: '/admin/admin/save',
@@ -53,7 +54,8 @@ export function saveAdmin(data) {
         data: data
     })
 }
-// 更新菜单
+
+// 更新管理员
 export function updateAdmin(data) {
     return request({
         url: '/admin/admin/update',
@@ -61,7 +63,8 @@ export function updateAdmin(data) {
         data: data
     })
 }
-// 移除菜单
+
+// 移除管理员
 export function removeAdmin(adminId) {
     return request({
         url: '/admin/admin/delete',
