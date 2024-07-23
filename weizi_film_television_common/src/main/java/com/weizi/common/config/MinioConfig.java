@@ -33,6 +33,9 @@ public class MinioConfig {
     @Value("${minio.bucket-name-slice-movie}")
     private String bucketNameSliceMovie;
 
+    @Value("${minio.bucket-name-movie-main-poster}")
+    private String bucketNameMovieMainPoster;
+
     @Value("${minio.bucket-name-movie-poster}")
     private String bucketNameMoviePoster;
 

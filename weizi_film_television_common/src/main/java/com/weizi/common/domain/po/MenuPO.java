@@ -2,6 +2,7 @@ package com.weizi.common.domain.po;
 
 import com.baomidou.mybatisplus.annotation.*;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.weizi.common.annotation.NotEmptyOrNullable;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
@@ -21,11 +22,12 @@ public class MenuPO implements Serializable {
     private String sort;
     @NotNull(message = "请选择菜单类型")
     private String menuType;
+    @NotEmptyOrNullable(message = "路由路径必须为非空字符串或null")
     private String path;
+    @NotEmptyOrNullable(message = "组件路径必须为非空字符串或null")
     private String componentPath;
-    @NotNull(message = "权限不能为空")
+    @NotEmptyOrNullable(message = "权限标识必须为非空字符串或null")
     private String perms;
-    @NotNull(message = "icon不能为空")
     private String icon;
     // 逻辑删除，Mybatis-Plus里默认0是未删除，1是删除
 //    @TableLogic(value = "1", delval = "0") 如果自定义反过来就这样写

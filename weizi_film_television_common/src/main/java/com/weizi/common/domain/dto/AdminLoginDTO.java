@@ -8,5 +8,5 @@ import java.io.Serializable;
 public class AdminLoginDTO implements Serializable {
     private String account;
     private String password;
-    private Integer rememberMe;
+    private Boolean rememberMe;
 }

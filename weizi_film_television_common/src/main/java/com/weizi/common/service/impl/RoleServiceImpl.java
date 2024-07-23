@@ -46,34 +46,28 @@ public class RoleServiceImpl extends ServiceImpl<RoleMapper, RoleDTO> implements
     @Override
     public WeiZiResult saveRole(RoleDTO roleDTO) {
         roleDTO.setParentRoleId(WeiZiSecurityUtil.getAdminId());
-        if (baseMapper.insert(roleDTO) == 1) {
-            baseMapper.insertRoleToMenuIdList(roleDTO.getRoleId(), roleDTO.getMenuIdList());
+        if (baseMapper.insert(roleDTO) > 0)
             return WeiZiResult.success();
-        }
         return WeiZiResult.error("没有角色权限");
     }
 
     @Override
     public WeiZiResult updateRole(RoleDTO roleDTO) {
         if (roleTreeService.isInMyBranch(roleDTO.getParentRoleId())) {
-            if (baseMapper.updateRole(roleDTO) > 0) {
-                baseMapper.deleteRoleToMenuIdList(roleDTO.getRoleId());
-                if (roleDTO.getMenuIdList().isEmpty()) return WeiZiResult.success();
-                baseMapper.insertRoleToMenuIdList(roleDTO.getRoleId(), roleDTO.getMenuIdList());
+            if (baseMapper.updateRole(roleDTO) > 0)
                 return WeiZiResult.success();
-            }
             return WeiZiResult.error("更新失败");
         }
         return WeiZiResult.error("没有角色权限");
     }
 
     @Override
-    public WeiZiResult deleteByRoleId(Long adminId) {
+    public WeiZiResult deleteByRoleId(Long roleId) {
+        if (roleTreeService.isInMyBranch(roleId)) {
+            if (baseMapper.deleteById(roleId) > 0)
+                return WeiZiResult.success();
+            return WeiZiResult.error("更新失败");
+        }
         return null;
-    }
-
-    @Override
-    public RoleDTO searchRoleById(Long roleId) {
-        return baseMapper.searchRoleById(roleId);
     }
 }

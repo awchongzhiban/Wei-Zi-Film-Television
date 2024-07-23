@@ -7,7 +7,8 @@ import com.weizi.common.domain.vo.RouterVO;
 import com.weizi.common.response.WeiZiPageResult;
 import com.weizi.common.response.WeiZiResult;
 import com.weizi.common.service.MenuService;
-import com.weizi.common.utils.security.WeiZiSecurityUtil;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -65,7 +66,7 @@ public class MenuController {
      * 保存菜单
      */
     @PostMapping("save")
-    public WeiZiResult save(@RequestBody MenuPO menuPO) {
+    public WeiZiResult save(@Valid @RequestBody MenuPO menuPO) {
         if (ObjectUtil.isNotEmpty(menuPO))
             return menuService.saveMenu(menuPO);
         return WeiZiResult.error("菜单不可为空");
@@ -75,19 +76,19 @@ public class MenuController {
      * 更新菜单
      */
     @PostMapping("update")
-    public WeiZiResult update(@RequestBody MenuPO menuPO) {
+    public WeiZiResult update(@Valid @RequestBody MenuPO menuPO) {
         if (ObjectUtil.isNotEmpty(menuPO))
             return menuService.updateMenu(menuPO);
         return WeiZiResult.error("菜单不可为空");
     }
 
     /**
-     * 删除菜单（二合一删除单个和多个都可以）
+     * 删除菜单（删除单个和子菜单）
      */
     @PostMapping("delete")
-    public WeiZiResult delete(@RequestBody Long[] menuIds) {
-        if (ObjectUtil.isNotEmpty(menuIds)) {
-            return menuService.deleteMenusByMenuId(List.of(menuIds));
+    public WeiZiResult delete(@Valid @NotNull(message = "menuId不可为空") @RequestParam("menuId") Long menuId) {
+        if (ObjectUtil.isNotNull(menuId)) {
+            return menuService.deleteMenusByMenuId(menuId);
         }
         return WeiZiResult.error("删除失败");
     }

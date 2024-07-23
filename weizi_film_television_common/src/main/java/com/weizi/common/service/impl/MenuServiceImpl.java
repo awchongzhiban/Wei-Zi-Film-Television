@@ -14,8 +14,11 @@ import com.weizi.common.response.WeiZiPageResult;
 import com.weizi.common.response.WeiZiResult;
 import com.weizi.common.service.MenuService;
 import com.weizi.common.utils.security.WeiZiSecurityUtil;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -47,15 +50,34 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, MenuPO> implements 
         return _getRouter(menuList);
     }
 
+
+    /**
+     * 获取个人菜单列表
+     */
+    @Override
+    public List<RouterVO> getSelfMenu(Boolean isSuperAdmin, Long adminId) {
+        List<MenuPO> menuList;
+        if (isSuperAdmin) {
+            menuList = baseMapper.selectAllMenu();
+        } else {
+            List<Long> roleIds = roleMapper.selectByAdminId(adminId);
+            menuList = baseMapper.selectAdminByRoleIds(roleIds);
+        }
+        // 通过递归设置菜单的树形结构
+        // 1、获取所有的1级菜单【parentId = 0】
+        // 2、遍历1级菜单，获取他所有的子元素【其他数据的parentId = 当前元素的menuId】
+        return _getRouter(menuList);
+    }
+
     @Override
     public WeiZiPageResult<MenuPO> selectList(MenuParamDTO menuParamDto) {
         // 这里是从数据库获取数据
         WeiZiPageResult<MenuPO> parentMenuList = _selectPage(menuParamDto);
         List<MenuPO> record = parentMenuList.getList();
         // 这里递归把子数据放入到对应的父级数据中
-        List<MenuPO> menusList = _buildMenuChildren(record);
+//        List<MenuPO> menusList = _buildMenuChildren(record);
         // 最后重新设置数组，返回的数据其实时有两个数据  total：总数据量，data：数据
-        parentMenuList.setList(menusList);
+        parentMenuList.setList(record);
         return parentMenuList;
     }
 
@@ -67,10 +89,9 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, MenuPO> implements 
     @Override
     public WeiZiResult saveMenu(MenuPO menuPO) {
         // 判断是否存在
-        if (ObjectUtil.isNull(menuPO.getParentId())) menuPO.setParentId(0L);
-        int count = baseMapper.checkCount(menuPO.getParentId(), menuPO.getMenuName(), menuPO.getPath(), menuPO.getPerms(), null);
-        if (count > 0) {
-            return WeiZiResult.error(HttpStatus.ERROR_MESSAGE, "该菜单已存在，或路径已存在！");
+        if (ObjectUtil.isNotNull(menuPO.getParentId()) && menuPO.getParentId() != 0) {
+            if (ObjectUtil.isEmpty(baseMapper.selectByMenuId(menuPO.getParentId())))
+                return WeiZiResult.error("父级菜单不存在！");
         }
         baseMapper.insert(menuPO);
         return WeiZiResult.success();
@@ -83,24 +104,35 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, MenuPO> implements 
         if (existingMenu == null) {
             return WeiZiResult.error("要更新的菜单不存在！");
         }
-        if (ObjectUtil.isNull(menuPO.getParentId())) menuPO.setParentId(0L);
-        int count = baseMapper.checkCount(menuPO.getParentId(), menuPO.getMenuName(), menuPO.getPath(), menuPO.getPerms(), existingMenu.getMenuId());
-        if (count > 0) {
-            return WeiZiResult.error("该菜单已存在，或路径已存在！");
+        if (ObjectUtil.isNotNull(menuPO.getParentId()) && menuPO.getParentId() != 0) {
+            if (ObjectUtil.isEmpty(baseMapper.selectByMenuId(menuPO.getParentId())))
+                return WeiZiResult.error("父级菜单不存在！");
         }
-        baseMapper.updateById(menuPO);
-        return WeiZiResult.success();
+        try {
+            baseMapper.updateById(menuPO);
+            return WeiZiResult.success();
+        }  catch (DataIntegrityViolationException dive) {
+            Throwable cause = dive.getCause();
+            if (cause instanceof SQLIntegrityConstraintViolationException sqlEx) {
+                String message = sqlEx.getMessage();
+                // 假设 message 形如 "(conn=123) Duplicate entry 'value' for key 'index_name'"
+                String[] parts = message.split("for key '");
+                if (parts.length > 1) {
+                    String indexName = parts[1].split("'")[0];
+                    String fieldName = indexNameToFieldName(indexName);
+                    return WeiZiResult.error("更新失败，字段 '" + fieldName + "' 的值已存在");
+                }
+            }
+            return WeiZiResult.error("更新失败：" + dive.getMessage());
+        }
     }
 
     @Override
-    public WeiZiResult deleteMenusByMenuId(List<Long> menuIds) {
-        if (ObjectUtil.isEmpty(menuIds)) {
-            return WeiZiResult.error("菜单ID列表为空");
-        }
-
+    @Transactional(rollbackFor = Exception.class)
+    public WeiZiResult deleteMenusByMenuId(Long menuId) {
         // 获取所有子菜单ID
-        List<Long> allMenuIds = baseMapper.getChildrenMenuIds(menuIds);
-        allMenuIds.addAll(menuIds);
+        List<Long> allMenuIds = baseMapper.getChildrenMenuIds(menuId);
+        allMenuIds.add(menuId);
 
         // 删除关联表中的记录和菜单表中的子菜单
         int deletedRoleToMenuCount = baseMapper.deleteRoleToMenuByMenuIds(allMenuIds);
@@ -140,9 +172,13 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, MenuPO> implements 
             List<RouterVO> childrenList = _buildTree(menuList, routerVO.getMenuId());
             routerVO.setChildren(childrenList);
         }
-        // 过滤掉没有子菜单的一级菜单
+        // 过滤掉没有子菜单并且为DIRECTORY的一级菜单
         routerVOS = routerVOS.stream()
-                .filter(router -> router.getChildren() != null && !router.getChildren().isEmpty())
+                .filter(router ->
+                        !"DIRECTORY".equals(router.getMenuType()) && ObjectUtil.isEmpty(router.getChildren()) ||
+                            router.getChildren() != null && !router.getChildren().isEmpty()
+                )
+
                 .collect(Collectors.toList());
         return routerVOS;
     }
@@ -234,5 +270,15 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, MenuPO> implements 
         for (Long childMenuId : childMenus) {
             _recursiveGetMenuIdsToDelete(childMenuId, menuIds, menuIdsToDelete);
         }
+    }
+
+    // 假设的辅助方法，将索引名称转换为字段名
+    private String indexNameToFieldName(String indexName) {
+        return switch (indexName) {
+            case "component_path_unique" -> "组件路径";
+            case "path_unique" -> "路由路径";
+            case "perms_unique" -> "权限标识";
+            default -> "未知字段";
+        };
     }
 }

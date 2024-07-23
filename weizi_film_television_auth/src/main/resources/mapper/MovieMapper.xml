@@ -10,6 +10,8 @@
         <result property="isMerge" column="is_merge"/>
         <result property="isPlayer" column="is_player"/>
         <result property="status" column="status"/>
+        <result property="channelId" column="channel_id"/>
+        <result property="mainPoster" column="main_poster"/>
         <result property="poster" column="poster"/>
         <result property="movieMd5" column="movie_md5"/>
         <result property="adminId" column="admin_id"/>
@@ -23,6 +25,7 @@
         <result property="movieName" column="movie_name"/>
         <result property="movieMd5" column="movie_md5"/>
         <result property="status" column="status"/>
+        <result property="mainPoster" column="main_poster"/>
         <result property="poster" column="poster"/>
         <!-- 使用collection来处理多对多关系 -->
         <result property="genreIdList" column="genre_ids" typeHandler="com.weizi.common.utils.IdsStringToListTypeHandler"/>
@@ -50,6 +53,8 @@
             is_merge,
             is_player,
             status,
+            channel_id,
+            main_poster,
             poster,
             movie_md5,
             admin_id,
@@ -85,6 +90,15 @@
             movie_md5 = #{movieMd5}
     </update>
 
+    <update id="updateMainPosterById">
+        UPDATE movie
+        SET
+            main_poster = #{mainPoster},
+            update_time = now()
+        WHERE
+            movie_id = #{movieId}
+    </update>
+
     <update id="updatePosterById">
         UPDATE movie
         SET
@@ -99,9 +113,22 @@
          SET
              movie_name = #{movieName},
              status = #{status},
+             channel_id = #{channelId},
              update_time = now()
          WHERE
              movie_id = #{movieId}
+    </update>
+    <update id="updateMovieGroup">
+        UPDATE movie
+        SET
+            status = #{status},
+            channel_id = #{channelId},
+            update_time = now()
+        WHERE
+            movie_id IN
+            <foreach collection="movieIdList" item="movieId" separator="," open="(" close=")">
+                #{movieId}
+            </foreach>
     </update>
 
     <select id="selectByMovieMd5" resultMap="MovieDTOResultMap">
@@ -113,6 +140,7 @@
             is_merge,
             is_player,
             status,
+            channel_id,
             poster,
             movie_md5,
             admin_id,
@@ -131,6 +159,8 @@
             m.movie_name,
             m.movie_md5,
             m.status,
+            m.channel_id,
+            m.main_poster,
             m.poster,
             (
                 SELECT
@@ -146,5 +176,20 @@
         WHERE
             m.movie_id = #{movieId}
     </select>
-
+    <select id="getMovieChannelList" resultType="com.weizi.common.domain.vo.list.MovieVO">
+        SELECT
+            movie_id,
+            movie_name,
+            main_poster,
+            movie_md5
+        FROM
+            movie
+        WHERE
+            is_player = 1
+        <if test="channelId != null and channelId != ''">
+            AND channel_id = #{channelId}
+        </if>
+        ORDER BY update_time DESC
+        LIMIT #{pageNum}, #{pageSize}
+    </select>
 </mapper>

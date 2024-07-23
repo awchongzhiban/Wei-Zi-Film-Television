@@ -15,6 +15,4 @@ public interface RoleService extends IService<RoleDTO> {
     WeiZiResult updateRole(RoleDTO roleDTO);
 
     WeiZiResult deleteByRoleId(Long adminId);
-
-    RoleDTO searchRoleById(Long roleId);
 }

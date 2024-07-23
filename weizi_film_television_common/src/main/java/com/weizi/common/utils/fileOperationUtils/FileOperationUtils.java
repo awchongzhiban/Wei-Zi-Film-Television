@@ -1,7 +1,6 @@
 package com.weizi.common.utils.fileOperationUtils;
 
 import com.weizi.common.config.MinioConfig;
-import com.weizi.common.service.VideoConcatenationService;
 import com.weizi.common.utils.MinioUtils;
 import io.minio.ComposeSource;
 import io.minio.messages.DeleteObject;
@@ -13,12 +12,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.nio.file.*;
-import java.util.Arrays;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -41,7 +37,6 @@ public class FileOperationUtils {
     // 切片时长
     @Value("${ffmpeg.movie-slice-duration}")
     private int sliceDuration;
-
 
     private final MinioUtils minioUtils;
     private final MinioConfig minioConfig;

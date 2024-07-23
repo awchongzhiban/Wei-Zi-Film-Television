@@ -1,10 +1,8 @@
 package com.weizi.common.utils.imageutils;
 
 import cn.hutool.core.util.ObjectUtil;
-import com.weizi.common.config.MinioConfig;
 import com.weizi.common.constants.FileConstants;
 import com.weizi.common.utils.MinioUtils;
-import io.minio.messages.DeleteObject;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,8 +11,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Base64;
-import java.util.List;
-import java.util.Set;
 import java.util.UUID;
 
 @Component
@@ -22,7 +18,7 @@ public class ImageUtils {
 
     private final MinioUtils minioUtils;
 
-    public ImageUtils(MinioUtils minioUtils, MinioConfig minioConfig) {
+    public ImageUtils(MinioUtils minioUtils) {
         this.minioUtils = minioUtils;
     }
 
@@ -100,9 +96,9 @@ public class ImageUtils {
         // 将MultipartFile转换为临时File对象
         File tempFile = convertMultipartFileToFile(file);
         try {
+            if (deleteObjectName != null) minioUtils.removeFile(bucketName, deleteObjectName);
             // 使用临时文件进行上传
             boolean uploadResult = minioUtils.uploadFileDir(bucketName, objectName, tempFile);
-            if (deleteObjectName != null) minioUtils.removeFile(bucketName, deleteObjectName);
             // 根据上传结果决定是否删除临时文件
             if (uploadResult) {
                 // 删除临时文件（可选：确保上传成功后再删除）

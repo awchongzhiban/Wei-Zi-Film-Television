@@ -1,8 +1,11 @@
 package com.weizi.common.mapper;
 
 import com.weizi.common.domain.dto.MovieDTO;
+import com.weizi.common.domain.dto.dataParam.MovieGroupParam;
 import com.weizi.common.domain.dto.dataParam.MovieParam;
 import com.weizi.common.domain.po.MoviePO;
+import com.weizi.common.domain.vo.list.ChannelVO;
+import com.weizi.common.domain.vo.list.MovieVO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -21,9 +24,15 @@ public interface MovieMapper extends BaseMapperX<MoviePO> {
 
     void updateIsPlayerByMovieMd5(@Param("movieMd5") String movieMd5);
 
+    int updateMainPosterById(@Param("mainPoster") String mainPoster, @Param("movieId") Long movieId);
+
     int updatePosterById(@Param("poster") String poster, @Param("movieId") Long movieId);
 
-    int updateMovie(@Param("movieName") String movieName, @Param("movieId") Long movieId, @Param("status") Boolean status);
+    int updateMovie(@Param("movieName") String movieName, @Param("status") Boolean status, @Param("channelId") Long channelId, @Param("movieId") Long movieId);
 
     MovieParam selectMovieParamById(@Param("movieId") Long movieId);
+
+    int updateMovieGroup(@Param("status") Boolean status, @Param("channelId") Long channelId, @Param("movieIdList") List<Long> movieIdList);
+
+    List<MovieVO> getMovieChannelList(@Param("channelId") Long channelId, @Param("pageNum") Long pageNum, @Param("pageSize") Long pageSize);
 }

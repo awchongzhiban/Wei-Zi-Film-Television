@@ -33,20 +33,6 @@ public class RoleController {
     }
 
     /**
-     * 获取单个角色详情
-     */
-    @GetMapping("getDetail")
-    public WeiZiResult searchRoleById(@RequestParam("roleId") Long roleId) {
-        if (ObjectUtil.isNull(roleId)) {
-            return WeiZiResult.error("roleId不可为空！");
-        }
-        RoleDTO role = roleService.searchRoleById(roleId);
-        if (ObjectUtil.isNotNull(role))
-            return WeiZiResult.success(role);
-        return WeiZiResult.error("该管理员不存在！");
-    }
-
-    /**
      * 保存角色
      */
     @PostMapping("save")

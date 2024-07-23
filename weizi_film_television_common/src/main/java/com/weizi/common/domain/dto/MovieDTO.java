@@ -22,6 +22,8 @@ public class MovieDTO implements Serializable {
     private Boolean isMerge;       // 是否已合并
     private Boolean isPlayer;      // 是否可播放
     private Boolean status;     // 状态
+    private Long channelId;     // 频道ID
+    private String mainPoster;      // 主海报
     private String poster;      // 海报
     private String movieMd5;       // 影片MD5
     private Long adminId;          // 管理员ID

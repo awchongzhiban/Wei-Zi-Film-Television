@@ -31,6 +31,7 @@ public class WeiZiSecurityUtil {
         // 使用ApplicationContext获取配置值
         SUPER_ADMIN_ROLE_ID = Long.parseLong(Objects.requireNonNull(context.getEnvironment().getProperty("superadmin.id")));
     }
+
     /**
      * 获取  Authentication
      */

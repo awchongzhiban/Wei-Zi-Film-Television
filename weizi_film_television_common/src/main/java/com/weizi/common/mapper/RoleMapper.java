@@ -25,6 +25,4 @@ public interface RoleMapper extends BaseMapper<RoleDTO> {
     int insertRoleToMenuIdList(@Param("roleId") Long roleId, @Param("menuIdList") List<Long> menuIdList);
     // 更新角色
     int updateRole(RoleDTO roleDTO);
-
-    RoleDTO searchRoleById(@Param("roleId") Long roleId);
 }

@@ -8,6 +8,7 @@ import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
+@TableName("genre")
 public class GenrePO implements Serializable {
     @TableId(type = IdType.AUTO)
     private Long genreId;

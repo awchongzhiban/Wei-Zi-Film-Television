@@ -3,11 +3,10 @@ package com.weizi;
 import cn.hutool.core.util.ObjectUtil;
 import com.weizi.common.config.MinioConfig;
 import com.weizi.common.constants.HttpStatus;
+import com.weizi.common.domain.dto.dataParam.MovieGroupParam;
 import com.weizi.common.domain.dto.dataParam.MovieParam;
-import com.weizi.common.domain.dto.dataParam.MoviePosterParam;
 import com.weizi.common.domain.dto.pageParam.MovieParamDTO;
 import com.weizi.common.domain.po.MoviePO;
-import com.weizi.common.domain.vo.LoginAdminVO;
 import com.weizi.common.domain.vo.list.MovieVO;
 import com.weizi.common.response.WeiZiPageResult;
 import com.weizi.common.response.WeiZiResult;
@@ -16,29 +15,22 @@ import com.weizi.common.service.MovieService;
 import com.weizi.common.utils.JwtUtils;
 import com.weizi.common.utils.fileOperationUtils.FileOperationUtils;
 import com.weizi.common.utils.imageutils.ImageUtils;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.MediaTypeFactory;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 /**
  * @date AWei
@@ -79,6 +71,12 @@ public class MovieController {
     public WeiZiResult selectList(MovieParamDTO movieParamDTO) {
         WeiZiPageResult<MovieVO> movieList = movieService.selectList(movieParamDTO);
         return WeiZiResult.success(movieList);
+    }
+
+    @GetMapping("list/getChannelMap")
+    public WeiZiResult getChannelMap() {
+        Map<Long, String> getChannelMap = movieService.selectAllChannels();
+        return WeiZiResult.success(getChannelMap);
     }
 
     @GetMapping("list/getGenreTagMap")
@@ -144,12 +142,22 @@ public class MovieController {
         return WeiZiResult.error("该影片不存在！");
     }
 
+    @PostMapping("updateMovieGroup")
+    public WeiZiResult updateMovieGroup(@Valid @RequestBody MovieGroupParam movieGroupParam) {
+        if (movieService.updateMovieGroup(movieGroupParam))
+            return WeiZiResult.success("更新成功");
+        return WeiZiResult.error("更新失败");
+    }
+
     /**
      * 更新影片
      */
     @PostMapping("update")
     public WeiZiResult update(@RequestBody MovieParam movieParam) {
         if (ObjectUtil.isNotEmpty(movieParam)) {
+            if (ObjectUtil.isEmpty(movieParam.getMovieId())) return WeiZiResult.error("影片ID不可为空");
+            if (ObjectUtil.isEmpty(movieParam.getMovieName())) return WeiZiResult.error("影片名称不可为空");
+            if (ObjectUtil.isEmpty(movieParam.getChannelId())) return WeiZiResult.error("频道ID不可为空");
             if (ObjectUtil.isEmpty(movieParam.getGenreIdList())) return WeiZiResult.error("影片类型不可为空");
             if (!genreService.isNonExistentGenreId(movieParam.getGenreIdList())) return WeiZiResult.error("影片类型不存在");
             if (movieService.updateMovie(movieParam))
@@ -158,6 +166,41 @@ public class MovieController {
         }
         return WeiZiResult.error("数据不可为空");
     }
+
+    @PostMapping("uploadMainPoster")
+    public WeiZiResult uploadMainPoster(@RequestParam("file") MultipartFile file, @RequestParam("movieId") Long movieId) throws IOException {
+        if (ObjectUtil.isEmpty(file)) {
+            return WeiZiResult.error("上传文件为空");
+        }
+        // 判断文件大小是否符合要求
+        long maxSize = imageUtils.parseSize(maxPosterSize);
+        if (file.getSize() > maxSize) {
+            return WeiZiResult.error("文件大小超过限制（" + maxPosterSize + "）");
+        }
+        // 获取上传文件的类型
+        String fileType = file.getContentType();
+        // 判断文件类型是否符合要求
+        if (!supportedPosterTypes.contains(fileType) || ObjectUtil.isNull(fileType)) {
+            return WeiZiResult.error("文件类型不支持");
+        }
+        String imageFileName = file.getOriginalFilename();
+        // 判断文件名是否为空
+        if (ObjectUtil.isNotNull(imageFileName)) {
+            // 先获取原本的主海报数据
+            MoviePO movie = movieService.selectById(movieId);
+            String posterOriginal = movie.getMainPoster();
+            String movieMd5 = movie.getMovieMd5();
+            String concatOriginal = null;
+            if (posterOriginal != null) concatOriginal = movieMd5.concat("/" + posterOriginal);
+            // 删除文件并上传文件和更新影片海报数据
+            if (imageUtils.deleteAndSaveImage(movieMd5.concat("/" + imageFileName), concatOriginal, file, minioConfig.getBucketNameMovieMainPoster())
+                    && movieService.updateMovieMainPoster(imageFileName, movieId))
+                return WeiZiResult.success("上传成功");
+        }
+        return WeiZiResult.error("文件上传失败");
+    }
+
+
 
     @PostMapping("uploadPoster")
     public WeiZiResult uploadPoster(@RequestParam("file") MultipartFile file, @RequestParam("movieId") Long movieId) throws IOException {
@@ -178,7 +221,7 @@ public class MovieController {
         String imageFileName = file.getOriginalFilename();
         // 判断文件名是否为空
         if (ObjectUtil.isNotNull(imageFileName)) {
-            // 先获取原本的头像数据
+            // 先获取原本的海报数据
             MoviePO movie = movieService.selectById(movieId);
             String posterOriginal = movie.getPoster();
             String movieMd5 = movie.getMovieMd5();

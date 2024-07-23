@@ -12,6 +12,8 @@ import java.util.List;
 public interface MenuService extends IService<MenuPO> {
     List<RouterVO> searchSelfMenu();
 
+    List<RouterVO> getSelfMenu(Boolean isSuperAdmin, Long adminId);
+
     List<RouterVO> selectMenuList();
 
     WeiZiPageResult<MenuPO> selectList(MenuParamDTO menuParamDto);
@@ -20,7 +22,7 @@ public interface MenuService extends IService<MenuPO> {
 
     WeiZiResult saveMenu(MenuPO menuPO);
 
-    WeiZiResult deleteMenusByMenuId(List<Long> menuIds);
+    WeiZiResult deleteMenusByMenuId(Long menuId);
 
     WeiZiResult updateMenu(MenuPO menuPO);
 }

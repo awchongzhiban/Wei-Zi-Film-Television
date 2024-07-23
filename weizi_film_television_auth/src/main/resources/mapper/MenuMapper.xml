@@ -4,9 +4,18 @@
 <mapper namespace="com.weizi.common.mapper.MenuMapper">
     <!--  根据roleId批量查询菜单  -->
     <select id="selectAdminByRoleIds" resultType="com.weizi.common.domain.po.MenuPO">
-        select m.menu_id,m.parent_id,m.menu_name,m.sort,m.menu_type,m.path,m.component_path,m.perms,m.icon
-        from menu m left join role_to_menu rtm on m.menu_id = rtm.menu_id
-        where
+        SELECT m.menu_id,
+               m.parent_id,
+               m.menu_name,
+               m.menu_type,
+               m.path,
+               m.component_path,
+               m.perms,
+               m.icon,
+               m.status,
+               m.sort
+        FROM menu m LEFT JOIN role_to_menu rtm on m.menu_id = rtm.menu_id
+        WHERE
         (
             m.menu_type = 'DIRECTORY'
             <if test="roleIds != null and roleIds.size() > 0">
@@ -26,13 +35,15 @@
             menu_id,
             parent_id,
             menu_name,
-            sort,
             menu_type,
             path,
             component_path,
             perms,
-            icon
+            icon,
+            status,
+            sort
          from menu
+         WHERE status = 0
     </select>
 
 <!--获取列表相关 Start-->
@@ -126,10 +137,7 @@
 <!--删除相关接口 Start-->
     <select id="getChildrenMenuIds" resultType="java.lang.Long">
         WITH RECURSIVE MenuTree AS (
-        SELECT menu_id FROM menu WHERE parent_id IN
-        <foreach collection="menuIds" item="parentId" open="(" close=")" separator=",">
-            #{parentId}
-        </foreach>
+        SELECT menu_id FROM menu WHERE parent_id = #{menuId}
         UNION ALL
         SELECT m.menu_id FROM menu m INNER JOIN MenuTree mt ON m.parent_id = mt.menu_id
         )

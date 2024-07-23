@@ -7,11 +7,14 @@ import com.weizi.common.config.MinioConfig;
 import com.weizi.common.domain.dto.MovieToGenreDTO;
 import com.weizi.common.domain.dto.MovieDTO;
 import com.weizi.common.domain.dto.dataParam.FileInfoParam;
+import com.weizi.common.domain.dto.dataParam.MovieGroupParam;
 import com.weizi.common.domain.dto.dataParam.MovieParam;
 import com.weizi.common.domain.dto.pageParam.MovieParamDTO;
+import com.weizi.common.domain.po.ChannelPO;
 import com.weizi.common.domain.po.GenrePO;
 import com.weizi.common.domain.po.MoviePO;
 import com.weizi.common.domain.vo.list.MovieVO;
+import com.weizi.common.mapper.ChannelMapper;
 import com.weizi.common.mapper.GenreMapper;
 import com.weizi.common.mapper.MovieChunkMapper;
 import com.weizi.common.mapper.MovieMapper;
@@ -40,14 +43,16 @@ public class MovieServiceImpl extends ServiceImpl<MovieMapper, MoviePO> implemen
     private final FileOperationUtils fileOperationUtils;
     private final MovieChunkMapper movieChunkMapper;
     private final GenreMapper genreMapper;
+    private final ChannelMapper channelMapper;
 
-    public MovieServiceImpl(MinioConfig minioConfig, ImageUtils imageUtils, RedisCacheUtil redisCacheUtil, FileOperationUtils fileOperationUtils, MovieChunkMapper movieChunkMapper, GenreMapper genreMapper) {
+    public MovieServiceImpl(MinioConfig minioConfig, ImageUtils imageUtils, RedisCacheUtil redisCacheUtil, FileOperationUtils fileOperationUtils, MovieChunkMapper movieChunkMapper, GenreMapper genreMapper, ChannelMapper channelMapper) {
         this.minioConfig = minioConfig;
         this.imageUtils = imageUtils;
         this.redisCacheUtil = redisCacheUtil;
         this.fileOperationUtils = fileOperationUtils;
         this.movieChunkMapper = movieChunkMapper;
         this.genreMapper = genreMapper;
+        this.channelMapper = channelMapper;
     }
 
     @Override
@@ -69,6 +74,9 @@ public class MovieServiceImpl extends ServiceImpl<MovieMapper, MoviePO> implemen
         List<MovieVO> recordsVO = records.stream().map(dto -> {
             MovieVO vo = new MovieVO();
             BeanUtils.copyProperties(dto, vo);
+            if (dto.getMainPoster() != null) {
+                vo.setMainPoster(imageUtils.generatePresignedGetObjectUrl(minioConfig.getBucketNameMovieMainPoster(), dto.getMovieMd5().concat("/" + dto.getMainPoster())));
+            }
             if (dto.getPoster() != null) {
                vo.setPoster(imageUtils.generatePresignedGetObjectUrl(minioConfig.getBucketNameMoviePoster(), dto.getMovieMd5().concat("/" + dto.getPoster())));
             }
@@ -77,6 +85,13 @@ public class MovieServiceImpl extends ServiceImpl<MovieMapper, MoviePO> implemen
             return vo;
         }).toList();
         return new WeiZiPageResult<>(recordsVO, total);
+    }
+
+    @Override
+    public Map<Long, String> selectAllChannels() {
+        List<ChannelPO> channels = channelMapper.selectAllChannels(); // 假设selectAllChannels返回所有Channel的列表
+        return channels.stream()
+                .collect(Collectors.toMap(ChannelPO::getChannelId, ChannelPO::getChannelName));
     }
 
     @Override
@@ -194,14 +209,26 @@ public class MovieServiceImpl extends ServiceImpl<MovieMapper, MoviePO> implemen
     @Override
     public MovieParam searchMovieParamById(Long movieId) {
         MovieParam movieParam = baseMapper.selectMovieParamById(movieId);
+        String mainPoster = movieParam.getMainPoster();
         String poster = movieParam.getPoster();
+        movieParam.setMainPoster(imageUtils.generatePresignedGetObjectUrl(minioConfig.getBucketNameMovieMainPoster(), movieParam.getMovieMd5().concat("/" + mainPoster)));
         movieParam.setPoster(imageUtils.generatePresignedGetObjectUrl(minioConfig.getBucketNameMoviePoster(), movieParam.getMovieMd5().concat("/" + poster)));
         return movieParam;
     }
 
     @Override
+    public Boolean updateMovieMainPoster(String posterFileName, Long movieId) {
+        return baseMapper.updateMainPosterById(posterFileName, movieId) > 0;
+    }
+
+    @Override
     public Boolean updateMoviePoster(String posterFileName, Long movieId) {
         return baseMapper.updatePosterById(posterFileName, movieId) > 0;
+    }
+
+    @Override
+    public boolean updateMovieGroup(MovieGroupParam movieGroupParam) {
+        return baseMapper.updateMovieGroup(movieGroupParam.getStatus(), movieGroupParam.getChannelId(), movieGroupParam.getMovieIdList()) > 0;
     }
 
     @Override
@@ -227,7 +254,7 @@ public class MovieServiceImpl extends ServiceImpl<MovieMapper, MoviePO> implemen
             }
 
             // 更新电影基本信息
-            int updatedRows = baseMapper.updateMovie(movieParam.getMovieName(), movieParam.getMovieId(), movieParam.getStatus());
+            int updatedRows = baseMapper.updateMovie(movieParam.getMovieName(), movieParam.getStatus(), movieParam.getChannelId(), movieParam.getMovieId());
             if (updatedRows <= 0) {
                 log.error("电影信息更新失败，没有行受到影响");
                 return false;

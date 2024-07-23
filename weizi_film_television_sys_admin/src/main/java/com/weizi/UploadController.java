@@ -5,11 +5,9 @@ package com.weizi;
  * @create 2023-05-09 10:33
  */
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 import cn.hutool.core.util.ObjectUtil;
 import com.alibaba.fastjson2.JSONException;
@@ -25,14 +23,12 @@ import com.weizi.common.taskProcessors.SequentialFileProcessor;
 import com.weizi.common.utils.fileOperationUtils.FileOperationUtils;
 import com.weizi.common.utils.redis.RedisCacheUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 @Slf4j
 @RestController

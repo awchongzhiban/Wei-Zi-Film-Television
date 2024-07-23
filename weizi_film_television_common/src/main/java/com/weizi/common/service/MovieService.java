@@ -3,6 +3,7 @@ package com.weizi.common.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.weizi.common.domain.dto.MovieDTO;
 import com.weizi.common.domain.dto.dataParam.FileInfoParam;
+import com.weizi.common.domain.dto.dataParam.MovieGroupParam;
 import com.weizi.common.domain.dto.dataParam.MovieParam;
 import com.weizi.common.domain.dto.pageParam.MovieParamDTO;
 import com.weizi.common.domain.po.MoviePO;
@@ -32,11 +33,17 @@ public interface MovieService extends IService<MoviePO> {
     
     MoviePO selectById(Long movieId);
 
+    Boolean updateMovieMainPoster(String imageFileName, Long movieId);
+
     Boolean updateMoviePoster(String imageFileName, Long movieId);
+
+    boolean updateMovieGroup(MovieGroupParam movieGroupParam);
 
     boolean updateMovie(MovieParam movieParam);
 
     MovieParam searchMovieParamById(Long movieId);
+
+    Map<Long, String> selectAllChannels();
 
     Map<Long, String> selectAllGenres();
 }

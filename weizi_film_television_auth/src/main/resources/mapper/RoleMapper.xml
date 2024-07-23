@@ -86,23 +86,14 @@
             role
     </select>
 
-       <resultMap id="roleWithMenuIdsMap" type="com.weizi.common.domain.dto.RoleDTO">
+       <resultMap id="roleDTOResultMap" type="com.weizi.common.domain.dto.RoleDTO">
            <id property="roleId" column="role_id"/>
            <result property="roleLabel" column="role_label"/>
            <result property="roleName" column="role_name"/>
            <result property="sort" column="sort"/>
            <result property="status" column="status"/>
            <result property="remark" column="remark"/>
-           <result property="menuIdList" column="menu_ids" typeHandler="com.weizi.common.utils.IdsStringToListTypeHandler"/>
        </resultMap>
-
-    <select id="searchRoleById" resultMap="roleWithMenuIdsMap">
-        SELECT r.*, IFNULL(GROUP_CONCAT(rm.menu_id), '') AS menu_ids
-        FROM role r
-                 LEFT JOIN role_to_menu rm ON r.role_id = rm.role_id
-        WHERE r.role_id = #{roleId}
-        GROUP BY r.role_id;
-    </select>
 
     <update id="updateRole">
         UPDATE role

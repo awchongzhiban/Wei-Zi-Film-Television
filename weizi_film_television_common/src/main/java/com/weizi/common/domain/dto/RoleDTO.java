@@ -23,6 +23,4 @@ public class RoleDTO implements Serializable {
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
     private Long parentRoleId;
-    @TableField(exist = false)
-    private List<Long> menuIdList = new ArrayList<>();
 }

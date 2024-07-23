@@ -1,6 +1,8 @@
 package com.weizi.auth.controller;
 
 import com.weizi.common.domain.dto.AdminLoginDTO;
+import com.weizi.common.domain.vo.AdminInfoVO;
+import com.weizi.common.domain.vo.LoginAdminVO;
 import com.weizi.common.response.WeiZiResult;
 import com.weizi.common.service.IAuthService;
 import com.weizi.common.utils.redis.AdminTreeService;
@@ -28,7 +30,7 @@ public class AuthAdminController {
     @RequestMapping("login")
     public WeiZiResult login(@RequestBody AdminLoginDTO adminLoginDto) {
         log.info("adminLoginDto====》{}", adminLoginDto);
-        String token = authService.login(adminLoginDto);
-        return WeiZiResult.success().put("token", token);
+        AdminInfoVO adminInfoVO = authService.login(adminLoginDto);
+        return WeiZiResult.success(adminInfoVO);
     }
 }

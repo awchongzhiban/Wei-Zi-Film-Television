@@ -25,7 +25,7 @@ public interface MenuMapper extends BaseMapperX<MenuPO> {
     // 获取子菜单数据
     List<MenuPO> getChildrenMenu(@Param("parentIds") List<Long> parentIds);
 
-    List<Long> getChildrenMenuIds(@Param("menuIds") List<Long> menuIds);
+    List<Long> getChildrenMenuIds(@Param("menuId") Long menuId);
 
     int deleteMenusByMenuIds(@Param("menuIds") List<Long> menuIds);
 
