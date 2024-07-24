@@ -1,0 +1,24 @@
+@use 'mixins/mixins' as *;
+@use 'mixins/config' as *;
+@use 'mixins/function' as *;
+@use 'var/index';
+
+$layout-height: calc(100vh - var(--plus-header-height));
+
+@include b(layout) {
+  height: 100vh;
+  overflow: hidden;
+
+  &.#{$el-namespace + -container} {
+    flex-direction: column;
+  }
+
+  .#{$el-namespace + -main} {
+    height: $layout-height;
+    padding-right: 10px;
+  }
+
+  .#{$plus-namespace + -sidebar} {
+    height: $layout-height;
+  }
+}
