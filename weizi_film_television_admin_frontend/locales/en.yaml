@@ -5,11 +5,19 @@ buttons:
   hsrefreshRoute: RefreshRoute
   hslogin: Login
   hsadd: Add
+  hsedit: Edit
   hsmark: Mark/Cancel
   hssave: Save
   hssearch: Search
+  hsrefresh: Refresh
   hsexpendAll: Expand All
   hscollapseAll: Collapse All
+  hsdensity: Density
+  hsloose: Loose
+  hsnormal: Normal
+  hstight: Tight
+  hscolumnSettings: Column Settings
+  hscolumnDisplay: Column Display
   hssystemSet: Open ProjectConfig
   hsdelete: Delete
   hsreload: Reload
@@ -22,117 +30,22 @@ buttons:
   hswholeExitFullScreen: ExitFull
   hscontentFullScreen: Content FullScreen
   hscontentExitFullScreen: Content ExitFullScreen
+  hsreset: Reset
+  hsoperation: Operation
 menus:
   hshome: Home
   hslogin: Login
-  hsempty: Empty Page
-  hssysManagement: System Manage
-  hsUser: User Manage
-  hsRole: Role Manage
-  hsSystemMenu: Menu Manage
-  hsDept: Dept Manage
-  hssysMonitor: System Monitor
-  hsOnlineUser: Online User
-  hsLoginLog: Login Log
-  hsOperationLog: Operation Log
-  hsSystemLog: System Log
-  hseditor: Editor
-  hsabnormal: Abnormal Page
+  systemManagement: System Management
+  adminManagement: Admin Management
+  menuManagement: Menu Management
+  uploadManagement: Upload Management
+  movieManagement: Movie Management
+  roleManagement: Role Management
+  personnelManagement: Personnel Management
+  userManagement: User Management
   hsfourZeroFour: "404"
   hsfourZeroOne: "403"
   hsFive: "500"
-  hscomponents: Components
-  hsdialog: Dialog
-  hsmessage: Message Tips
-  hsvideo: Video
-  hssegmented: Segmented
-  hswaterfall: Waterfall
-  hsmap: Map
-  hsdraggable: Draggable
-  hssplitPane: Split Pane
-  hsText: Text Ellipsis
-  hsElButton: Button
-  hsbutton: Button Animation
-  hsCheckButton: Check Button
-  hscropping: Picture Cropping
-  hsanimatecss: AnimateCss Selector
-  hscountTo: Digital Animation
-  hsselector: Scope Selector
-  hsflowChart: Flow Chart
-  hsseamless: Seamless Scroll
-  hscontextmenu: Context Menu
-  hstypeit: Typeit
-  hsjsoneditor: JSON Editor
-  hsColorPicker: Color Picker
-  hsDatePicker: Date Picker
-  hsDateTimePicker: DateTimePicker
-  hsTimePicker: TimePicker
-  hsTag: Tag
-  hsStatistic: Statistic
-  hsCollapse: Collapse
-  hsProgress: Progress
-  hsUpload: File Upload
-  hsCheckCard: CheckCard
-  hsmenus: MultiLevel Menu
-  hsmenu1: Menu1
-  hsmenu1-1: Menu1-1
-  hsmenu1-2: Menu1-2
-  hsmenu1-2-1: Menu1-2-1
-  hsmenu1-2-2: Menu1-2-2
-  hsmenu1-3: Menu1-3
-  hsmenu2: Menu2
-  permission: Permission Manage
-  permissionPage: Page Permission
-  permissionButton: Button Permission
-  hstabs: Tabs Operate
-  hsguide: Guide
-  hsAble: Able
-  hsMenuTree: Menu Tree
-  hsVideoFrame: Video Frame Capture
-  hsWavesurfer: Audio Visualization
-  hsRipple: Ripple
-  hsOptimize: Debounce、Throttle、Copy、Longpress Directives
-  hsWatermark: Water Mark
-  hsPrint: Print
-  hsDownload: Download
-  hsExternalPage: External Page
-  hsExternalDoc: Docs External
-  hsEmbeddedDoc: Docs Embedded
-  externalLink: Vue-Pure-Admin
-  pureutilsLink: Pure-Admin-Utils
-  hsEpDocument: Element-Plus
-  hsTailwindcssDocument: Tailwindcss
-  hsVueDocument: Vue3
-  hsViteDocument: Vite
-  hsPiniaDocument: Pinia
-  hsRouterDocument: Vue-Router
-  hsAbout: About
-  hsResult: Result Page
-  hsSuccess: Success Page
-  hsFail: Fail Page
-  hsIconSelect: Icon Select
-  hsTimeline: Time Line
-  hsLineTree: LineTree
-  hsList: List Page
-  hsListCard: Card List Page
-  hsDebounce: Debounce & Throttle
-  hsFormDesign: Form Design
-  hsBarcode: Barcode
-  hsQrcode: Qrcode
-  hsCascader: Area Cascader
-  hsSwiper: Swiper Plugin
-  hsVirtualList: Virtual List
-  hsPdf: PDF Preview
-  hsExcel: Export Excel
-  hsInfiniteScroll: Table Infinite Scroll
-  hsSensitive: Sensitive Filter
-  hsPinyin: PinYin
-  hsdanmaku: Danmaku
-  hsPureTableBase: Base Usage
-  hsPureTableHigh: High Usage
-  hsboard: Paint Board
-  hsMenuoverflow: Menu Overflow Show Tooltip Text
-  hsChildMenuoverflow: Child Menu Overflow Show Tooltip Text
 status:
   hsLoad: Loading...
 login:
@@ -176,3 +89,33 @@ login:
   passwordSureReg: Please enter confirm password
   passwordDifferentReg: The two passwords do not match!
   passwordUpdateReg: Password has been updated
+module:
+  menuManagement:
+    menuName: Menu Name
+    menuType: Menu Type
+    path: Path
+    componentPath: Component Path
+    perms: Perms
+    status: Status
+    icon: Icon
+    sort: Sort
+    remark: Remark
+    createTime: Create Time
+    previousMenu: Previous Menu
+    dialogAddTitle: Add Menu
+    dialogEditTitle: Edit Menu
+    menuNamePlaceholder: Please enter menu name
+    permsPlaceholder: Please enter perms
+    saveSuccessMessage: You have {addOrEdit} the data of menu named {menuName}
+    deleteConfirm: Are you sure to delete the data of menu named {menuName}{additionalInfo}
+    deleteConfirmAdditionalInfo: . Note that the lower level menu will also be deleted, please operate with caution
+    enableTips: Display in menu or enable
+    disableTips: hide in menu or disable
+type:
+  menu:
+    directory: Directory
+    menu: Menu
+    button: Button
+  status:
+    enable: Enable
+    disable: Disable

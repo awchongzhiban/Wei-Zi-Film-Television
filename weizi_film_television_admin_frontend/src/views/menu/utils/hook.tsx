@@ -1,17 +1,19 @@
 import editForm from "../form.vue";
-import { handleTree } from "@/utils/tree";
-import { message } from "@/utils/message";
-import {getMenuList, saveMenu, updateMenu, deleteMenu} from "@/api/menu";
-import { transformI18n } from "@/plugins/i18n";
-import { addDialog } from "@/components/ReDialog";
-import { reactive, ref, onMounted, h } from "vue";
-import type { FormItemProps } from "../utils/types";
-import {cloneDeep, isAllEmpty} from "@pureadmin/utils";
-import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import {handleTree} from "@/utils/tree";
+import {message} from "@/utils/message";
+import {deleteMenu, getMenuList, saveMenu, updateMenu} from "@/api/menu";
+import {$t, transformI18n} from "@/plugins/i18n";
+import {addDialog} from "@/components/ReDialog";
+import {h, onMounted, reactive, ref} from "vue";
+import type {FormItemProps} from "../utils/types";
+import {cloneDeep} from "@pureadmin/utils";
+import {useRenderIcon} from "@/components/ReIcon/src/hooks";
+import OperationType from "@/utils/enum";
 
 export function useMenu() {
   const form = reactive({
-    menuName: ""
+    menuName: "",
+    perms: ""
   });
 
   const formRef = ref();
@@ -21,11 +23,11 @@ export function useMenu() {
   const getMenuType = (type, text = false) => {
     switch (type) {
       case "DIRECTORY":
-        return text ? "目录" : "warning";
+        return text ? transformI18n("type.menu.directory") : "warning";
       case "MENU":
-        return text ? "菜单" : "primary";
+        return text ? transformI18n("type.menu.menu") : "primary";
       case "BUTTON":
-        return text ? "按钮" : "info";
+        return text ? transformI18n("type.menu.button") : "info";
     }
   };
 
@@ -53,33 +55,40 @@ export function useMenu() {
     }
   };
 
-
   const getStatusType = (isAvailable: boolean, text = false) => {
     if (isAvailable) {
-      return text ? "禁用" : "danger";
+      return text ? transformI18n("type.status.disable") : "danger";
     } else {
-      return text ? "启用" : "success";
+      return text ? transformI18n("type.status.enable") : "success";
     }
   };
 
   const columns: TableColumnList = [
     {
-      label: "菜单名称",
+      label: "module.menuManagement.menuName",
       prop: "menuName",
       align: "left",
       cellRenderer: ({ row }) => (
         <>
           <span class="inline-block mr-1">
             {h(useRenderIcon(row.icon), {
-              style: { paddingTop: "1px" }
+              style: {paddingTop: "1px"}
             })}
           </span>
           <span>{transformI18n(row.menuName)}</span>
+          {
+            row.menuType !== 'BUTTON' ? (
+              <>
+                <br />
+                <span style={{ paddingLeft: row.icon ? '40px' : '25px' }}>{row.menuName}</span>
+              </>
+            ) : null
+          }
         </>
       )
     },
     {
-      label: "菜单类型",
+      label: $t("module.menuManagement.menuType"),
       prop: "menuType",
       width: 100,
       cellRenderer: ({ row, props }) => (
@@ -93,19 +102,19 @@ export function useMenu() {
       )
     },
     {
-      label: "路由路径",
+      label: $t("module.menuManagement.path"),
       prop: "path"
     },
     {
-      label: "组件路径",
+      label: $t("module.menuManagement.componentPath"),
       prop: "componentPath",
     },
     {
-      label: "权限标识",
+      label: $t("module.menuManagement.perms"),
       prop: "perms"
     },
     {
-      label: "状态",
+      label: $t("module.menuManagement.status"),
       prop: "status",
       width: 100,
       cellRenderer: ({ row, props }) => (
@@ -119,12 +128,12 @@ export function useMenu() {
       )
     },
     {
-      label: "排序",
+      label: $t("module.menuManagement.sort"),
       prop: "sort",
       width: 100
     },
     {
-      label: "操作",
+      label: $t("buttons.hsoperation"),
       fixed: "right",
       width: 210,
       slot: "operation"
@@ -143,35 +152,35 @@ export function useMenu() {
 
   async function onSearch() {
     loading.value = true;
-    const { data } = await getMenuList(); // 这里是返回一维数组结构，前端自行处理成树结构，返回格式要求：唯一id加父节点parentId，parentId取父节点id
-    let newData = data?.list;
-    if (!isAllEmpty(form.menuName)) {
-      // 前端搜索菜单名称
-      newData = newData.filter(item =>
-        transformI18n(item.menuName).includes(form.menuName)
-      );
-    }
-    dataList.value = handleTree(newData); // 处理成树结构
+    const { data } = await getMenuList(form); // 这里是返回一维数组结构，前端自行处理成树结构，返回格式要求：唯一id加父节点parentId，parentId取父节点id
+    dataList.value = handleTree(data); // 处理成树结构
     setTimeout(() => {
       loading.value = false;
     }, 500);
   }
 
   function formatHigherMenuOptions(treeList) {
-    if (!treeList || !treeList.length) return;
+    if (!treeList || !treeList.length) return [];
+
     const newTreeList = [];
     for (let i = 0; i < treeList.length; i++) {
-      treeList[i].menuName = transformI18n(treeList[i].menuName);
-      formatHigherMenuOptions(treeList[i].children);
-      newTreeList.push(treeList[i]);
+        const item = treeList[i];
+        // 只有当 menuType 不是 "BUTTON" 时，才处理并添加到新列表中
+        if (item.menuType !== "BUTTON") {
+            item.menuName = transformI18n(item.menuName);
+            // 递归处理子菜单，确保子菜单也经过相同逻辑的过滤
+            item.children = formatHigherMenuOptions(item.children);
+            newTreeList.push(item);
+        }
     }
     return newTreeList;
-  }
+}
 
-  function openDialog(title = "新增", row?: FormItemProps) {
-    console.log("row: ",row)
+
+  function openDialog(addOrEdit = OperationType.ADD, row?: FormItemProps) {
+    let title = addOrEdit === OperationType.ADD ? "module.menuManagement.dialogAddTitle" : "module.menuManagement.dialogEditTitle";
     addDialog({
-      title: `${title}菜单`,
+      title: `${transformI18n(title)}`,
       props: {
         formInline: {
           higherMenuOptions: formatHigherMenuOptions(cloneDeep(dataList.value)),
@@ -196,8 +205,12 @@ export function useMenu() {
         const FormRef = formRef.value.getRef();
         const curData = options.props.formInline as FormItemProps;
         function chores() {
+          let messageContent = $t('module.menuManagement.saveSuccessMessage', {
+            addOrEdit: transformI18n(title),
+            menuName: transformI18n(curData.menuName)
+          });
           message(
-            `您${title}了菜单名称为${transformI18n(curData.menuName)}的这条数据`,
+            messageContent,
             {
               type: "success"
             }
@@ -211,7 +224,7 @@ export function useMenu() {
             const newData = { ...curData }; // 使用扩展运算符复制对象
             newData.menuType = getMenuTypeStringOptions(newData.menuType);
             // 表单规则校验通过
-            if (title === "新增") {
+            if (addOrEdit === OperationType.ADD) {
               saveMenu(newData).then(res => {
                 if (res.code === 200 || res.code === 403) {
                   chores();

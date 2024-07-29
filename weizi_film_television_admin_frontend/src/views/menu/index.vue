@@ -4,6 +4,7 @@ import { useMenu } from "./utils/hook";
 import { transformI18n } from "@/plugins/i18n";
 import { PureTableBar } from "@/components/RePureTableBar";
 import { useRenderIcon } from "@/components/ReIcon/src/hooks";
+import { OperationType } from "@/utils/enum";
 
 import Delete from "@iconify-icons/ep/delete";
 import EditPen from "@iconify-icons/ep/edit-pen";
@@ -37,10 +38,18 @@ const {
       :model="form"
       class="search-form bg-bg_color w-[99/100] pl-8 pt-[12px]"
     >
-      <el-form-item label="菜单名称：" prop="menuName">
+      <el-form-item :label="$t('module.menuManagement.menuName')" prop="menuName">
         <el-input
           v-model="form.menuName"
-          placeholder="请输入菜单名称"
+          :placeholder="$t('module.menuManagement.menuNamePlaceholder')"
+          clearable
+          class="!w-[180px]"
+        />
+      </el-form-item>
+      <el-form-item :label="$t('module.menuManagement.perms')" prop="perms">
+        <el-input
+          v-model="form.perms"
+          :placeholder="$t('module.menuManagement.permsPlaceholder')"
           clearable
           class="!w-[180px]"
         />
@@ -52,16 +61,16 @@ const {
           :loading="loading"
           @click="onSearch"
         >
-          搜索
+          {{ $t('buttons.hssearch') }}
         </el-button>
         <el-button :icon="useRenderIcon(Refresh)" @click="resetForm(formRef)">
-          重置
+          {{ $t('buttons.hsreset') }}
         </el-button>
       </el-form-item>
     </el-form>
 
     <PureTableBar
-      title="菜单管理"
+      :title="$t('menus.menuManagement')"
       :columns="columns"
       :isExpandAll="false"
       :tableRef="tableRef?.getTableRef()"
@@ -71,9 +80,9 @@ const {
         <el-button
           type="primary"
           :icon="useRenderIcon(AddFill)"
-          @click="openDialog()"
+          @click="openDialog(OperationType.ADD)"
         >
-          新增菜单
+          {{ $t('buttons.hsadd') }}
         </el-button>
       </template>
       <template v-slot="{ size, dynamicColumns }">
@@ -102,9 +111,9 @@ const {
               type="primary"
               :size="size"
               :icon="useRenderIcon(EditPen)"
-              @click="openDialog('修改', row)"
+              @click="openDialog(OperationType.EDIT, row)"
             >
-              修改
+              {{ $t('buttons.hsedit') }}
             </el-button>
             <el-button
               v-show="row.menuType !== 'BUTTON'"
@@ -113,12 +122,16 @@ const {
               type="primary"
               :size="size"
               :icon="useRenderIcon(AddFill)"
-              @click="openDialog('新增', { parentId: row.menuId } as any)"
+              @click="openDialog(OperationType.ADD, { parentId: row.menuId } as any)"
             >
-              新增
+              {{ $t('buttons.hsadd') }}
             </el-button>
             <el-popconfirm
-              :title="`是否确认删除菜单名称为${transformI18n(row.menuName)}的这条数据${row?.children?.length > 0 ? '。注意下级菜单也会一并删除，请谨慎操作' : ''}`"
+              :title="`${$t('module.menuManagement.deleteConfirm', {
+               menuName: transformI18n(row.menuName),
+               additionalInfo: row?.children?.length > 0 ? transformI18n('module.menuManagement.deleteConfirmAdditionalInfo') : ''
+              })}`"
+              width="220"
               @confirm="handleDelete(row)"
             >
               <template #reference>
@@ -129,7 +142,7 @@ const {
                   :size="size"
                   :icon="useRenderIcon(Delete)"
                 >
-                  删除
+                  {{ $t('buttons.hsdelete') }}
                 </el-button>
               </template>
             </el-popconfirm>

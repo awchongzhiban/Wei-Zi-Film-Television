@@ -6,10 +6,10 @@ import lombok.Data;
 /**
  * @date AWei
  * @date 2024/02/12
+ * description 不需要分页参数
  */
 @Data
-public class MenuParamDTO extends PageParam {
-
+public class MenuParamDTO {
     private String menuName;
     private String perms;
 }

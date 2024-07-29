@@ -14,6 +14,7 @@ import ExpandIcon from "./svg/expand.svg?component";
 import RefreshIcon from "./svg/refresh.svg?component";
 import SettingIcon from "./svg/settings.svg?component";
 import CollapseIcon from "./svg/collapse.svg?component";
+import {transformI18n} from "@/plugins/i18n";
 
 const props = {
   /** 头部最左边的标题 */
@@ -35,6 +36,23 @@ const props = {
     default: true
   }
 };
+
+function wrapLabelsWithI18n(columns) {
+  // 克隆原始的列配置以避免修改原数组
+  const clonedColumns = cloneDeep(columns);
+
+  // 遍历克隆后的列配置数组
+  clonedColumns.forEach(column => {
+    if (column.label) {
+      // 假设label是一个国际化键
+      const originalKey = column.label;
+      // 使用transformI18n函数重新包装label
+      column.label = transformI18n(originalKey);
+    }
+  });
+
+  return clonedColumns;
+}
 
 export default defineComponent({
   name: "PureTableBar",
@@ -144,19 +162,19 @@ export default defineComponent({
             style={getDropdownItemStyle.value("large")}
             onClick={() => (size.value = "large")}
           >
-            宽松
+            { transformI18n('buttons.hsloose') }
           </el-dropdown-item>
           <el-dropdown-item
             style={getDropdownItemStyle.value("default")}
             onClick={() => (size.value = "default")}
           >
-            默认
+            { transformI18n('buttons.hsnormal') }
           </el-dropdown-item>
           <el-dropdown-item
             style={getDropdownItemStyle.value("small")}
             onClick={() => (size.value = "small")}
           >
-            紧凑
+            { transformI18n('buttons.hstight') }
           </el-dropdown-item>
         </el-dropdown-menu>
       )
@@ -218,7 +236,7 @@ export default defineComponent({
       reference: () => (
         <SettingIcon
           class={["w-[16px]", iconClass.value]}
-          v-tippy={rendTippyProps("列设置")}
+          v-tippy={rendTippyProps(transformI18n("buttons.hscolumnSettings"))}
         />
       )
     };
@@ -244,7 +262,7 @@ export default defineComponent({
                       transform: isExpandAll.value ? "none" : "rotate(-90deg)"
                     }}
                     v-tippy={rendTippyProps(
-                      isExpandAll.value ? "折叠" : "展开"
+                      isExpandAll.value ? transformI18n("buttons.hscollapseAll") : transformI18n("buttons.hsexpendAll")
                     )}
                     onClick={() => onExpand()}
                   />
@@ -257,14 +275,14 @@ export default defineComponent({
                   iconClass.value,
                   loading.value ? "animate-spin" : ""
                 ]}
-                v-tippy={rendTippyProps("刷新")}
+                v-tippy={rendTippyProps(transformI18n("buttons.hsrefresh"))}
                 onClick={() => onReFresh()}
               />
               <el-divider direction="vertical" />
               <el-dropdown
                 v-slots={dropdown}
                 trigger="click"
-                v-tippy={rendTippyProps("密度")}
+                v-tippy={rendTippyProps(transformI18n("buttons.hsdensity"))}
               >
                 <CollapseIcon class={["w-[16px]", iconClass.value]} />
               </el-dropdown>
@@ -280,13 +298,13 @@ export default defineComponent({
                 <div class={[topClass.value]}>
                   <el-checkbox
                     class="!-mr-1"
-                    label="列展示"
+                    label={transformI18n("buttons.hscolumnDisplay")}
                     v-model={checkAll.value}
                     indeterminate={isIndeterminate.value}
                     onChange={value => handleCheckAllChange(value)}
                   />
                   <el-button type="primary" link onClick={() => onReset()}>
-                    重置
+                    { transformI18n("buttons.hsreset") }
                   </el-button>
                 </div>
 
@@ -323,10 +341,10 @@ export default defineComponent({
                                 }
                               >
                                 <span
-                                  title={item}
+                                  title={transformI18n(item)}
                                   class="inline-block w-[120px] truncate hover:text-text_color_primary"
                                 >
-                                  {item}
+                                  { transformI18n(item) }
                                 </span>
                               </el-checkbox>
                             </div>
@@ -341,7 +359,7 @@ export default defineComponent({
           </div>
           {slots.default({
             size: size.value,
-            dynamicColumns: dynamicColumns.value
+            dynamicColumns: wrapLabelsWithI18n(dynamicColumns.value)
           })}
         </div>
       </>

@@ -70,15 +70,8 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, MenuPO> implements 
     }
 
     @Override
-    public WeiZiPageResult<MenuPO> selectList(MenuParamDTO menuParamDto) {
-        // 这里是从数据库获取数据
-        WeiZiPageResult<MenuPO> parentMenuList = _selectPage(menuParamDto);
-        List<MenuPO> record = parentMenuList.getList();
-        // 这里递归把子数据放入到对应的父级数据中
-//        List<MenuPO> menusList = _buildMenuChildren(record);
-        // 最后重新设置数组，返回的数据其实时有两个数据  total：总数据量，data：数据
-        parentMenuList.setList(record);
-        return parentMenuList;
+    public List<MenuPO> selectList(MenuParamDTO menuParamDto) {
+        return _selectList(menuParamDto);
     }
 
     @Override
@@ -109,6 +102,7 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, MenuPO> implements 
                 return WeiZiResult.error("父级菜单不存在！");
         }
         try {
+            if (ObjectUtil.isNull(menuPO.getParentId())) menuPO.setParentId(0L);
             baseMapper.updateById(menuPO);
             return WeiZiResult.success();
         }  catch (DataIntegrityViolationException dive) {
@@ -204,58 +198,30 @@ public class MenuServiceImpl extends ServiceImpl<MenuMapper, MenuPO> implements 
         return childrenList;
     }
 
-    /**
-     * 构建子菜单
-     */
-    private List<MenuPO> _buildMenuChildren(List<MenuPO> menuList) {
-        // 首先获取所有的1级路由
-        List<MenuPO> parentMenu = menuList.stream().filter(item -> item.getParentId() == 0).collect(Collectors.toList());
-        // 循环1级路由，获取所有的子菜单
-        for (MenuPO menuEntity : parentMenu) {
-            // 获取所有的子节点
-            List<MenuPO> childrenList = _buildMenuTree(menuList, menuEntity.getMenuId());
-            menuEntity.setChildren(childrenList);
-        }
-        return parentMenu;
+    private List<MenuPO> _selectList(MenuParamDTO menuParamDto) {
+        // 首先，获取所有直接匹配的记录
+        List<MenuPO> matchingMenus = baseMapper.selectMenuPage(menuParamDto.getMenuName(), menuParamDto.getPerms());
+
+        // 然后，递归地收集所有匹配记录的子级记录
+        List<MenuPO> allMatchingMenus = new ArrayList<>(matchingMenus);
+        _collectChildren(matchingMenus, allMatchingMenus);
+
+        return allMatchingMenus;
     }
 
-    /**
-     * 获取所有子节点，递归获取【如果是2级不需要递归了】
-     */
-    private List<MenuPO> _buildMenuTree(List<MenuPO> allMenu, Long parentId) {
-        List<MenuPO> childrenList = new ArrayList<>();
-        // 遍历所有的数据
-        for (MenuPO menu : allMenu) {
-            // 判断menu的parentId是否与传进来的parentId相同
-            if (menu.getParentId().equals(parentId)) {
-                childrenList.add(menu);
+    private void _collectChildren(List<MenuPO> parents, List<MenuPO> allMenus) {
+        List<Long> parentIds = parents.stream()
+                .map(MenuPO::getMenuId)
+                .collect(Collectors.toList());
+
+        List<MenuPO> children = baseMapper.getChildrenMenu(parentIds);
+
+        children.forEach(child -> {
+            if (!allMenus.contains(child)) {
+                allMenus.add(child);
+                _collectChildren(List.of(child), allMenus); // 递归收集子菜单
             }
-        }
-        // 递归childrenList可能还有子节点
-        for (MenuPO childrenItem : childrenList) {
-            childrenItem.setChildren(_buildMenuTree(allMenu, childrenItem.getMenuId()));
-        }
-        return childrenList;
-    }
-
-    private WeiZiPageResult<MenuPO> _selectPage(MenuParamDTO menuParamDto) {
-        // 计算分页查询的偏移量
-        Long pageNum = (menuParamDto.getPageNum() - 1) * menuParamDto.getPageSize();
-        // 执行分页查询
-        List<MenuPO> records = baseMapper.selectMenuPage(menuParamDto.getMenuName(), menuParamDto.getPerms(), pageNum, menuParamDto.getPageSize());
-
-        // 获取到最外层父级Id数组
-        List<Long> menuIdList = records.stream().map(MenuPO::getMenuId).toList();
-        if (ObjectUtil.isNotEmpty(menuIdList)) {
-            // 获取所有子菜单数组
-            List<MenuPO> childrenMenus = baseMapper.getChildrenMenu(menuIdList);
-            // 判空后加入到records内
-            if (ObjectUtil.isNotEmpty(childrenMenus))
-                records.addAll(childrenMenus);
-        }
-        // 查询总记录数
-        int total = baseMapper.countTotal(menuParamDto.getMenuName(), menuParamDto.getPerms());
-        return new WeiZiPageResult<>(records, total);
+        });
     }
 
     // 递归获取当前菜单及其所有子菜单的 ID

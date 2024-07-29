@@ -4,7 +4,6 @@ import cn.hutool.core.util.ObjectUtil;
 import com.weizi.common.domain.dto.pageParam.MenuParamDTO;
 import com.weizi.common.domain.po.MenuPO;
 import com.weizi.common.domain.vo.RouterVO;
-import com.weizi.common.response.WeiZiPageResult;
 import com.weizi.common.response.WeiZiResult;
 import com.weizi.common.service.MenuService;
 import jakarta.validation.Valid;
@@ -46,7 +45,7 @@ public class MenuController {
      */
     @GetMapping("list")
     public WeiZiResult selectList(MenuParamDTO menuParamDto) {
-        WeiZiPageResult<MenuPO> menuList = menuService.selectList(menuParamDto);
+        List<MenuPO> menuList = menuService.selectList(menuParamDto);
         return WeiZiResult.success(menuList);
     }
 

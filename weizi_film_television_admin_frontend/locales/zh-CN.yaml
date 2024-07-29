@@ -5,11 +5,19 @@ buttons:
   hsrefreshRoute: 刷新路由
   hslogin: 登录
   hsadd: 新增
+  hsedit: 编辑
   hsmark: 标记/取消
   hssave: 保存
+  hsrefresh: 刷新
   hssearch: 搜索
   hsexpendAll: 全部展开
   hscollapseAll: 全部折叠
+  hsdensity: 密度
+  hsloose: 宽松
+  hsnormal: 默认
+  hstight: 紧凑
+  hscolumnSettings: 列设置
+  hscolumnDisplay: 列显示
   hssystemSet: 打开项目配置
   hsdelete: 删除
   hsreload: 重新加载
@@ -22,117 +30,22 @@ buttons:
   hswholeExitFullScreen: 退出全屏
   hscontentFullScreen: 内容区全屏
   hscontentExitFullScreen: 内容区退出全屏
+  hsreset: 重置
+  hsoperation: 操作
 menus:
   hshome: 首页
   hslogin: 登录
-  hsempty: 无Layout页
-  hssysManagement: 系统管理
-  hsUser: 用户管理
-  hsRole: 角色管理
-  hsSystemMenu: 菜单管理
-  hsDept: 部门管理
-  hssysMonitor: 系统监控
-  hsOnlineUser: 在线用户
-  hsLoginLog: 登录日志
-  hsOperationLog: 操作日志
-  hsSystemLog: 系统日志
-  hseditor: 编辑器
-  hsabnormal: 异常页面
+  systemManagement: 系统管理
+  adminManagement: 管理员管理
+  menuManagement: 菜单管理
+  uploadManagement: 上传管理
+  movieManagement: 影片管理
+  roleManagement: 角色管理
+  personnelManagement: 人事管理
+  userManagement: 用户管理
   hsfourZeroFour: "404"
   hsfourZeroOne: "403"
   hsFive: "500"
-  hscomponents: 组件
-  hsdialog: 函数式弹框
-  hsmessage: 消息提示
-  hsvideo: 视频
-  hssegmented: 分段控制器
-  hswaterfall: 瀑布流无限滚动
-  hsmap: 地图
-  hsdraggable: 拖拽
-  hssplitPane: 切割面板
-  hsText: 文本省略
-  hsElButton: 按钮
-  hsCheckButton: 可选按钮
-  hsbutton: 按钮动效
-  hscropping: 图片裁剪
-  hsanimatecss: animate.css选择器
-  hscountTo: 数字动画
-  hsselector: 范围选择器
-  hsflowChart: 流程图
-  hsseamless: 无缝滚动
-  hscontextmenu: 右键菜单
-  hstypeit: 打字机
-  hsjsoneditor: JSON编辑器
-  hsColorPicker: 颜色选择器
-  hsDatePicker: 日期选择器
-  hsDateTimePicker: 日期时间选择器
-  hsTimePicker: 时间选择器
-  hsTag: 标签
-  hsStatistic: 统计组件
-  hsCollapse: 折叠面板
-  hsProgress: 进度条
-  hsUpload: 文件上传
-  hsCheckCard: 多选卡片
-  hsmenus: 多级菜单
-  hsmenu1: 菜单1
-  hsmenu1-1: 菜单1-1
-  hsmenu1-2: 菜单1-2
-  hsmenu1-2-1: 菜单1-2-1
-  hsmenu1-2-2: 菜单1-2-2
-  hsmenu1-3: 菜单1-3
-  hsmenu2: 菜单2
-  permission: 权限管理
-  permissionPage: 页面权限
-  permissionButton: 按钮权限
-  hstabs: 标签页操作
-  hsguide: 引导页
-  hsAble: 功能
-  hsMenuTree: 菜单树结构
-  hsVideoFrame: 视频帧截取-wasm版
-  hsWavesurfer: 音频可视化
-  hsRipple: 波纹(Ripple)
-  hsOptimize: 防抖、截流、复制、长按指令
-  hsWatermark: 水印
-  hsPrint: 打印
-  hsDownload: 下载
-  hsExternalPage: 外部页面
-  hsExternalDoc: 文档外链
-  hsEmbeddedDoc: 文档内嵌
-  externalLink: vue-pure-admin
-  pureutilsLink: pure-admin-utils
-  hsEpDocument: element-plus
-  hsTailwindcssDocument: tailwindcss
-  hsVueDocument: vue3
-  hsViteDocument: vite
-  hsPiniaDocument: pinia
-  hsRouterDocument: vue-router
-  hsAbout: 关于
-  hsResult: 结果页面
-  hsSuccess: 成功页面
-  hsFail: 失败页面
-  hsIconSelect: 图标选择器
-  hsTimeline: 时间线
-  hsLineTree: 树形连接线
-  hsList: 列表页
-  hsListCard: 卡片列表页
-  hsDebounce: 防抖节流
-  hsFormDesign: 表单设计器
-  hsBarcode: 条形码
-  hsQrcode: 二维码
-  hsCascader: 区域级联选择器
-  hsSwiper: Swiper插件
-  hsVirtualList: 虚拟列表
-  hsPdf: PDF预览
-  hsExcel: 导出Excel
-  hsInfiniteScroll: 表格无限滚动
-  hsSensitive: 敏感词过滤
-  hsPinyin: 汉语拼音
-  hsdanmaku: 弹幕
-  hsPureTableBase: 基础用法（23个示例）
-  hsPureTableHigh: 高级用法（11个示例）
-  hsboard: 艺术画板
-  hsMenuoverflow: 目录超出显示 Tooltip 文字提示
-  hsChildMenuoverflow: 菜单超出显示 Tooltip 文字提示
 status:
   hsLoad: 加载中...
 login:
@@ -176,3 +89,33 @@ login:
   passwordSureReg: 请输入确认密码
   passwordDifferentReg: 两次密码不一致!
   passwordUpdateReg: 修改密码成功
+module:
+  menuManagement:
+    menuName: 菜单名称
+    menuType: 菜单类型
+    path: 路由路径
+    componentPath: 组件路径
+    perms: 权限标识
+    status: 菜单状态
+    icon: 图标
+    sort: 排序
+    remark: 备注
+    createTime: 创建时间
+    previousMenu: 上级菜单
+    dialogAddTitle: 新增菜单
+    dialogEditTitle: 编辑菜单
+    menuNamePlaceholder: 请输入菜单名称
+    permsPlaceholder: 请输入权限标识
+    saveSuccessMessage: 您已经 {addOrEdit} 了菜单名称为 {menuName} 的这条数据
+    deleteConfirm: 是否确认删除菜单名称为 {menuName} 的这条数据{additionalInfo}
+    deleteConfirmAdditionalInfo: 。注意下级菜单也会一并删除，请谨慎操作
+    enableTips: 显示在菜单或可用
+    disableTips: 隐藏在菜单或禁用
+type:
+  menu:
+    directory: 目录
+    menu: 菜单
+    button: 按钮
+  status:
+    enable: 启用
+    disable: 禁用

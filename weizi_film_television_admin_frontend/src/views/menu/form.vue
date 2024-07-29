@@ -118,7 +118,7 @@ defineExpose({ getRef });
             v-model="newFormInline.sort"
             class="!w-full"
             :min="0"
-            :max="9999"
+            :max="999999"
             controls-position="right"
           />
         </el-form-item>

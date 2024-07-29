@@ -98,8 +98,19 @@ export function transformI18n(message: any = "") {
   }
 }
 
-/** 此函数只是配合i18n Ally插件来进行国际化智能提示，并无实际意义（只对提示起作用），如果不需要国际化可删除 */
-export const $t = (key: string) => key;
+/**
+ * 国际化翻译函数，兼容动态参数替换和i18n Ally智能提示。
+ * @param key 键名
+ * @param replacements 替换数据对象
+ * @returns 翻译后的字符串或键名
+ */
+export const $t = (key: string, replacements?: Record<string, any>): string => {
+  // 如果提供了替换数据，则调用 i18n.global.t 进行动态参数替换
+  if (replacements !== undefined) return (i18n.global.t as any)(key, replacements);
+  // 否则，保持原有行为，返回键名本身，仅用于 i18n Ally 智能提示
+  return key;
+};
+
 
 export const i18n: I18n = createI18n({
   legacy: false,

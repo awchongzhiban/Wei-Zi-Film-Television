@@ -15,7 +15,7 @@ public interface MenuMapper extends BaseMapperX<MenuPO> {
     // 超级管理员直接获取菜单
     List<MenuPO> selectAllMenu();
     // 获取菜单分页
-    List<MenuPO> selectMenuPage(@Param("menuName") String menuName, @Param("perms") String perms, @Param("pageNum") Long pageNum, @Param("pageSize") Long pageSize);
+    List<MenuPO> selectMenuPage(@Param("menuName") String menuName, @Param("perms") String perms);
     // 获取父级菜单总数
     int countTotal(@Param("menuName") String menuName,@Param("perms")  String perms);
     // 通过菜单id获取信息

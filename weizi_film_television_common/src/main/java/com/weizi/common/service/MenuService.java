@@ -16,7 +16,7 @@ public interface MenuService extends IService<MenuPO> {
 
     List<RouterVO> selectMenuList();
 
-    WeiZiPageResult<MenuPO> selectList(MenuParamDTO menuParamDto);
+    List<MenuPO> selectList(MenuParamDTO menuParamDto);
 
     MenuPO searchMenuById(Long menuId);
 

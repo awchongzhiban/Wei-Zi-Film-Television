@@ -56,31 +56,23 @@
     </select>
 
     <select id="selectMenuPage" resultType="com.weizi.common.domain.po.MenuPO">
-        SELECT *
-        FROM menu
+        SELECT * FROM menu
         <where>
-            parent_id = 0
             <if test="menuName != null and menuName != ''">
-                AND menu_name like concat('%', #{menuName}, '%')
+                AND menu_name LIKE CONCAT('%', #{menuName}, '%')
             </if>
             <if test="perms != null and perms != ''">
-                AND perms like concat('%', #{perms}, '%')
+                AND perms LIKE CONCAT('%', #{perms}, '%')
             </if>
         </where>
-        ORDER BY sort ASC
-        LIMIT #{pageNum}, #{pageSize}
     </select>
 
     <select id="getChildrenMenu" resultType="com.weizi.common.domain.po.MenuPO">
-        WITH RECURSIVE MenuTree AS (
-        SELECT * FROM menu WHERE parent_id IN
-        <foreach collection="parentIds" item="parentId" open="(" close=")" separator=",">
-            #{parentId}
+        SELECT * FROM menu
+        WHERE parent_id IN
+        <foreach collection="parentIds" item="id" open="(" close=")" separator=",">
+            #{id}
         </foreach>
-        UNION ALL
-        SELECT m.* FROM menu m INNER JOIN MenuTree mt ON m.parent_id = mt.menu_id
-        )
-        SELECT * FROM MenuTree ORDER BY sort;
     </select>
 
     <select id="countTotal" resultType="java.lang.Integer">

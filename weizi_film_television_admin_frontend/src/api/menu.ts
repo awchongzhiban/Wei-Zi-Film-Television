@@ -21,8 +21,8 @@ type MenuResultType = {
 };
 
 /** 获取菜单管理列表 */
-export const getMenuList = (data?: object) => {
-  return http.request<Result>("get", baseAdminUrlApi("menu/list"), { data });
+export const getMenuList = (params?: object) => {
+  return http.request<Result>("get", baseAdminUrlApi("menu/list"), { params });
 };
 
 /** 新增菜单 */
